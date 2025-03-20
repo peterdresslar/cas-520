@@ -12,6 +12,7 @@ globals [  ;; iʻve got my dungeon masterʻs guide.
   grass-armor-class
   wood-armor-class
   brick-armor-class
+  wolf-level-cap
   max-wolf-size
 ]
 
@@ -26,13 +27,14 @@ to setup       ;; Step 3
   set wood-armor-class 10
   set brick-armor-class 12
   set max-wolf-size 5
+  set wolf-level-cap 12  ;; hope they buff this with the DLC!!!
 
   create-wolves num-wolves [  ;; Step 4.1 4.2
     setxy random-xcor random-ycor
     set shape "wolf"
     set color gray
     set size 1
-    set constitution (3 * ((random 6) + 3)) + wolf-bonus  ;; 3d6 + 2  ;; wolves notably tough
+    set constitution ((3 * (random 6)) + 3) + wolf-bonus  ;; 3d6 + 2  ;; wolves notably tough
     set character-level 1
   ]
 
@@ -71,7 +73,7 @@ to go  ;; Step 3
   ask wolves [
     roll-to-move  ;; Step 5.1
     let experience check-for-attack
-    set character-level character-level + experience
+    set character-level (min list (character-level + experience) wolf-level-cap)
     let new-size ceiling (character-level / 4)
 
     set size min list new-size max-wolf-size  ;; higher level wolves appear larger
@@ -81,6 +83,7 @@ to go  ;; Step 3
     build-new-house
   ]
 
+  update-plot
   tick  ;; Step 3.2
 end
 
@@ -115,7 +118,7 @@ to-report check-for-attack             ;; Step 7
 
     ;; Saving throw halves damage
     ask this-house [
-      output-print (word "Rolling for wolf level " this-wolf-cl)
+      output-print (word "Rolling for wolf level " this-wolf-cl " versus house with hp: " hit-points)
 
       ;; breath weapons deal more damage at higher wolf character-levels
       ;; to do this we use damage dice
@@ -147,7 +150,14 @@ to-report check-for-attack             ;; Step 7
       ]
 
       if hit-points <= 0 [  ;; never good
-        if sound-on [       ;; multimedia experience
+        let house-type "Unknown"
+        if grass? [ set house-type "Grass" ]
+        if wood? [ set house-type "Wood" ]
+        if brick? [ set house-type "Brick" ]
+
+        output-print (word "X X X " house-type " House #" who " has succumbed to a level " this-wolf-cl " wolf! X X X")
+
+        if sound-on [  ;; multimedia experience
           if grass? [ sound:play-drum "SPLASH CYMBAL" 64 ]
           if wood? [ sound:play-drum "LOW WOOD BLOCK" 64 ]
           if brick? [ sound:play-drum "BASS DRUM 1" 64 ]
@@ -180,15 +190,15 @@ to build-new-house   ;; Step 8
 
   set build-chance ((reproduction-factor + (charisma * 1.5)) / crowding-factor)  ;; Only charisma can help with crowding
 
-  output-print (word "charisma: " charisma " | crowding-factor: " crowding-factor)
-  output-print (word "build-chance: " build-chance)
+  ;; output-print (word "charisma: " charisma " | crowding-factor: " crowding-factor)
+  ;; output-print (word "build-chance: " build-chance)
 
   let build-roll random 100  ;; 1d100!
-  output-print (word "build-roll: " build-roll)
+  ;; output-print (word "build-roll: " build-roll)
 
   if build-roll < build-chance [  ;; higher build change is easier
     hatch-houses 1 [
-      output-print (word "building house with that will inherit: " charisma grass? wood? brick?)
+      ;; output-print (word "building house with that will inherit: " charisma grass? wood? brick?)
 
       move-to one-of patches in-radius 3 with [not any? houses-here] ;; don't stack houses
       if patch-here = nobody [ move-to one-of patches ]              ;; fallback
@@ -211,21 +221,19 @@ to build-new-house   ;; Step 8
 end
 
 to update-plot
+  set-current-plot "Wolf and House Stats"
 
-  ;; seems to massively harm performance? maybe next time.
+  ;; Plot average wolf character level
+  set-current-plot-pen "Wolf Level"
+  ifelse any? wolves
+    [ plot mean [character-level] of wolves ]
+    [ plot 0 ]
 
-  ;; set-current-plot "Census"
-  ;; set-current-plot-pen "Wolves"
-  ;; plot count wolves
-
-  ;; set-current-plot-pen "Grass Houses"
-  ;; plot count houses with [grass?]
-
-  ;; set-current-plot-pen "Wood Houses"
-  ;; plot count houses with [wood?]
-
-  ;; set-current-plot-pen "Brick Houses"
-  ;; plot count houses with [brick?]
+  ;; Plot average house charisma
+  set-current-plot-pen "House Charisma"
+  ifelse any? houses
+    [ plot mean [charisma] of houses ]
+    [ plot 0 ]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -249,8 +257,8 @@ GRAPHICS-WINDOW
 16
 -16
 16
-0
-0
+1
+1
 1
 ticks
 30.0
@@ -369,7 +377,7 @@ brick-hit-dice
 brick-hit-dice
 1
 6
-6.0
+4.0
 1
 1
 d6
@@ -384,7 +392,7 @@ wood-hit-dice
 wood-hit-dice
 1
 6
-4.0
+2.0
 1
 1
 d6
@@ -399,7 +407,7 @@ grass-hit-dice
 grass-hit-dice
 1
 6
-2.0
+1.0
 1
 1
 d6
@@ -414,48 +422,69 @@ house-repro-factor
 house-repro-factor
 1
 100
-50.0
+20.0
 1
 1
 NIL
 HORIZONTAL
 
+PLOT
+687
+61
+1079
+270
+Wolf and House Stats
+time
+avg
+0.0
+10.0
+0.0
+25.0
+true
+false
+"" ""
+PENS
+"Wolf Level" 1.0 0 -9276814 true "" ""
+"House Charisma" 1.0 0 -14070903 true "" ""
+
 @#$#@#$#@
 ## WHAT IS IT?
 
-(a general understanding of what the model is trying to show or explain)
+This is a class model that does not explain anything in particular. I am learning netlogo and that is the intent of the model
 
 ## HOW IT WORKS
 
-(what rules the agents use to create the overall behavior of the model)
+Wolves move randomly and when they encounter houses they inflict damage using well-known huff-puff breath weapon mechanics. Different houses have different damage tolerance according to building materials.
 
 ## HOW TO USE IT
 
-(how to use the model, including a description of each of the items in the Interface tab)
+Press Setup, and then press Go. You can use keyboard commands, in particular to stop and start the model with "g".
 
 ## THINGS TO NOTICE
 
-(suggested things for the user to notice while running the model)
+The command center has verbose output. Too verbose.
 
 ## THINGS TO TRY
 
-(suggested things for the user to try to do (move sliders, switches, etc.) with the model)
+Note that wolves gain experience over time, which improves their ability to damage. The houses do not level up. So, this is more of a Skyrim experience than a Souls experience. You know, from science.
+
+When setting the sliders, consider that houses should lose power over time... but there is an inheritance function for charisma!
 
 ## EXTENDING THE MODEL
 
-(suggested things to add or change in the Code tab to make the model more complicated, detailed, accurate, etc.)
+Itʻs a toy. Extend something good.
 
 ## NETLOGO FEATURES
 
-(interesting or unusual features of NetLogo that the model uses, particularly in the Code tab; or where workarounds were needed for missing features)
+EPIC MULTIMEDIA EXPERIENCE SOUND ON SPEAKERS ***UP***
 
 ## RELATED MODELS
 
-(models in the NetLogo Models Library and elsewhere which are of related interest)
+Come on man, nobodyʻs ever going to read this.
 
 ## CREDITS AND REFERENCES
 
-(a reference to the model's URL on the web if it has one, as well as any other necessary credits, citations, and links)
+Adapted from homework assignment Prof. S. Bergin, Arizona State University, 2025
 @#$#@#$#@
 default
 true
