@@ -8,17 +8,32 @@ extensions [sound]
 breed [wolves wolf]  ;; Step 4
 breed [houses house]
 
-houses-own [grass? wood? brick?]  ;; step 6
+globals [ ;; iʻve got my dungeon masterʻs guide.
+  grass-armor-class
+  wood-armor-class
+  brick-armor-class
+  max-wolf-size
+]
+
+houses-own [grass? wood? brick? hit-points charisma]  ;; step 6
+wolves-own [constitution character-level]  ;; for breath weapon, naturally.
 
 to setup ;; Step 3
   clear-all  ;; Step 3.1
   reset-ticks  ;; Step 3.1
+
+  set grass-armor-class 8
+  set wood-armor-class 10
+  set brick-armor-class 12
+  set max-wolf-size 5
 
   create-wolves num-wolves [  ;; Step 4.1 4.2
     setxy random-xcor random-ycor
     set shape "wolf"
     set color gray
     set size 1
+    set constitution (3 * ((random 6) + 3)) + wolf-bonus ;; 3d6 + 2  ;; wolves notably tough
+    set character-level 1
   ]
 
  create-houses num-houses [  ;; Step 4.1 4.2
@@ -30,26 +45,36 @@ to setup ;; Step 3
     set wood? false
     set brick? false
 
-    let chance random 3
+    let chance random 3 ;; 1d6 divided by 2
     if chance = 0 [
       set grass? true
       set color green
+      set hit-points ((random 6) + 1) * grass-hit-dice  ;; random d6 roll
+      set charisma (3 * ((random 6) + 3)) + house-bonus
     ]
     if chance = 1 [
       set wood? true
       set color brown
+      set hit-points ((random 6) + 1) * wood-hit-dice  ;; random d6 roll
+      set charisma (3 * ((random 6) + 3)) + house-bonus
     ]
     if chance = 2 [
       set brick? true
       set color gray
+      set hit-points ((random 6) + 1) * brick-hit-dice  ;; random d6 roll
+      set charisma (3 * ((random 6) + 3)) + house-bonus
     ]
   ]
 end
 
 to go  ;; Step 3
   ask wolves [
+    let new-size 0
     roll-to-move  ;; Step 5.1
-    huff-puff-1d20
+    let experience check-for-attack
+    set character-level character-level + experience
+    set new-size floor (character-level / 4)
+    set size min list new-size max-wolf-size  ;; yuck
   ]
 
   ; Houses try to reproduce based on their building type.
@@ -72,40 +97,93 @@ to roll-to-move  ;; Step 5.0
   ]
 end
 
-to huff-puff-1d20  ;; Step 7
+to-report check-for-attack  ;; Step 7
+  let experience 0
   if any? houses-here [  ;; Step 7.1
     let this-house one-of houses-here  ;; Step 7.2
 
-    let destruction-chance 0  ;; like armor class!
-    if [grass?] of this-house [ set destruction-chance (15 - wolf-to-hit-bonus) ]
-    if [wood?] of this-house [ set destruction-chance (10 - wolf-to-hit-bonus) ]
-    if [brick?] of this-house [ set destruction-chance (6 - wolf-to-hit-bonus) ]
+    let this-wolf-cl character-level
 
-    ; roll 1d20 to hit!
-    if destruction-chance > random 20 [
-      if sound-on [
-        if [grass?] of this-house [ sound:play-drum "SPLASH CYMBAL" 64 ]
-        if [wood?] of this-house [ sound:play-drum "LOW WOOD BLOCK" 64 ]
-        if [brick?] of this-house [ sound:play-drum "BASS DRUM 1" 64 ]
+    ; What Step are we on?
+    let breath-dc 8 + (constitution / 4)  ;; dnd 5e style breath weapon damage! via reddit, of course.
+
+    ; Determine house "saving throw" based on type (higher is better)
+    let save-bonus 0
+    if [grass?] of this-house [ set save-bonus (grass-armor-class - 8) / 2 ]
+    if [wood?] of this-house [ set save-bonus (wood-armor-class - 8) / 2 ]
+    if [brick?] of this-house [ set save-bonus (brick-armor-class - 8) / 2 ]
+
+    let save-roll (random 20) + 1 + save-bonus
+    let house-destroyed? false
+
+    ; Saving throw halves damage
+    ask this-house [
+      ; breath weapons deal more damage at higher character-levels
+      let damage ceiling (this-wolf-cl / 2)
+      set hit-points hit-points - damage  ;; apply hit
+
+      if save-roll < breath-dc [
+        set hit-points hit-points - (damage / 2)  ;; half damage if save is failed
       ]
-      ask this-house [ die ]
+
+      if hit-points <= 0 [
+        if sound-on [
+          if grass? [ sound:play-drum "SPLASH CYMBAL" 64 ]
+          if wood? [ sound:play-drum "LOW WOOD BLOCK" 64 ]
+          if brick? [ sound:play-drum "BASS DRUM 1" 64 ]
+        ]
+        ; Mark that the house will be destroyed
+        set house-destroyed? true
+        die
+      ]
+    ]
+
+    ; If the house was destroyed, award experience
+    if house-destroyed? [
+      set experience 1
+    ]
+  ]
+  report experience  ; Return the experience gained
+end
+
+to build-new-house  ;; Step 8
+  let build-chance 0
+
+  let reproduction-factor 0
+  if grass? [ set reproduction-factor 0.8 ]  ; Differences per Step 8 instructions.
+  if wood? [ set reproduction-factor 0.5 ]
+  if brick? [ set reproduction-factor 0.3 ]
+
+  let dice-factor 0
+  if grass? [ set dice-factor 100 / (grass-hit-dice * 1.5) ]  ;; let sliders do some work.
+  if wood? [ set dice-factor 100 / (wood-hit-dice * 2) ]
+  if brick? [ set dice-factor 100 / (brick-hit-dice * 2.5) ]
+
+  let charisma-bonus charisma / 10
+
+  set build-chance (reproduction-factor * dice-factor) + charisma-bonus
+
+  ; Add randomness but keep it controlled
+  if build-chance > random 150 [
+    hatch 1 [
+      move-to one-of patches
     ]
   ]
 end
 
-to build-new-house  ;; step 8
-  let build-chance 0
-  if grass? [ set build-chance (100 / grass-hit-dice) ]
-  if wood? [ set build-chance (100 / wood-hit-dice) ]
-  if brick? [ set build-chance (100 / brick-hit-dice) ]
+to update-plot
+  set-current-plot "Census"
+  set-current-plot-pen "Wolves"
+  plot count wolves
 
-  ; If the random check passes, a new house is hatched.
-  if build-chance > random 100 [
-    hatch 1 [
-      move-to one-of patches
-      ; The new house inherits the parent's properties automatically.
-    ]
-  ]
+  set-current-plot-pen "Grass Houses"
+  plot count houses with [grass?]
+
+  set-current-plot-pen "Wood Houses"
+  plot count houses with [wood?]
+
+  set-current-plot-pen "Brick Houses"
+  plot count houses with [brick?]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -142,9 +220,9 @@ SLIDER
 43
 num-wolves
 num-wolves
-0
+1
 100
-50.0
+20.0
 1
 1
 NIL
@@ -157,9 +235,9 @@ SLIDER
 80
 num-houses
 num-houses
-0
+1
 100
-50.0
+20.0
 1
 1
 NIL
@@ -167,9 +245,9 @@ HORIZONTAL
 
 BUTTON
 9
-195
+212
 173
-228
+245
 G for go forever
 go
 T
@@ -184,9 +262,9 @@ NIL
 
 BUTTON
 9
-152
+169
 107
-185
+202
 S for setup
 setup
 NIL
@@ -215,11 +293,26 @@ SLIDER
 88
 195
 121
-wolf-to-hit-bonus
-wolf-to-hit-bonus
+wolf-bonus
+wolf-bonus
 0
-6
-0.0
+5
+2.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+8
+124
+195
+157
+house-bonus
+house-bonus
+0
+3
+1.0
 1
 1
 NIL
@@ -228,13 +321,13 @@ HORIZONTAL
 SLIDER
 10
 296
-47
+43
 446
 brick-hit-dice
 brick-hit-dice
 1
 6
-5.0
+3.0
 1
 1
 d6
@@ -243,7 +336,7 @@ VERTICAL
 SLIDER
 56
 296
-93
+89
 446
 wood-hit-dice
 wood-hit-dice
@@ -258,13 +351,13 @@ VERTICAL
 SLIDER
 102
 296
-139
+135
 446
 grass-hit-dice
 grass-hit-dice
 1
 6
-2.0
+3.0
 1
 1
 d6
