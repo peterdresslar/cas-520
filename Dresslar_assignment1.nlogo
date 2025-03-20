@@ -60,7 +60,7 @@ to setup ;; Step 3
     ]
     if chance = 2 [
       set brick? true
-      set color gray
+      set color red
       set hit-points ((random 6) + 1) * brick-hit-dice  ;; random d6 roll
       set charisma (3 * ((random 6) + 3)) + house-bonus
     ]
@@ -69,12 +69,16 @@ end
 
 to go  ;; Step 3
   ask wolves [
-    let new-size 0
     roll-to-move  ;; Step 5.1
     let experience check-for-attack
     set character-level character-level + experience
-    set new-size floor (character-level / 4)
+    let new-size ceiling (character-level / 4)
+    output-print "new-size"
+    output-print new-size
+    output-print max-wolf-size
+    output-print max-wolf-size
     set size min list new-size max-wolf-size  ;; yuck
+    output-print size
   ]
 
   ; Houses try to reproduce based on their building type.
@@ -148,23 +152,29 @@ end
 
 to build-new-house  ;; Step 8
   let build-chance 0
+  let crowding-factor count houses in-radius 5  ;; check if there are nearby houses in-radius 5
 
-  let reproduction-factor 0
-  if grass? [ set reproduction-factor 0.8 ]  ; Differences per Step 8 instructions.
-  if wood? [ set reproduction-factor 0.5 ]
-  if brick? [ set reproduction-factor 0.3 ]
+  let reproduction-factor house-repro-factor  ;; slider 1-100 make sure no zeros allowed!
+  if grass? [ set reproduction-factor (house-repro-factor * 1.3) ]  ;; Repro differences per Step 8 instructions.
+  if wood? [ set reproduction-factor (house-repro-factor * 1.0) ]
+  if brick? [ set reproduction-factor (house-repro-factor * 0.7) ]
 
-  let dice-factor 0
-  if grass? [ set dice-factor 100 / (grass-hit-dice * 1.5) ]  ;; let sliders do some work.
-  if wood? [ set dice-factor 100 / (wood-hit-dice * 2) ]
-  if brick? [ set dice-factor 100 / (brick-hit-dice * 2.5) ]
+  set build-chance ((reproduction-factor + charisma) / crowding-factor)  ;; Only charisma can help with crowding
 
-  let charisma-bonus charisma / 10
+  output-print "charisma: "
+  output-print charisma
+  output-print "crowding-factor: "
+  output-print crowding-factor
+  output-print "bulid-chance: "
+  output-print build-chance
 
-  set build-chance (reproduction-factor * dice-factor) + charisma-bonus
+  let build-roll random 100  ;; 1d100!
 
-  ; Add randomness but keep it controlled
-  if build-chance > random 150 [
+  output-print "build-roll"
+  output-print build-roll
+
+  if build-roll > build-chance [
+
     hatch 1 [
       move-to one-of patches
     ]
@@ -284,7 +294,7 @@ SWITCH
 51
 sound-on
 sound-on
-1
+0
 1
 -1000
 
@@ -297,7 +307,7 @@ wolf-bonus
 wolf-bonus
 0
 5
-2.0
+3.0
 1
 1
 NIL
@@ -327,7 +337,7 @@ brick-hit-dice
 brick-hit-dice
 1
 6
-3.0
+6.0
 1
 1
 d6
@@ -342,7 +352,7 @@ wood-hit-dice
 wood-hit-dice
 1
 6
-3.0
+4.0
 1
 1
 d6
@@ -357,11 +367,26 @@ grass-hit-dice
 grass-hit-dice
 1
 6
-3.0
+2.0
 1
 1
 d6
 VERTICAL
+
+SLIDER
+9
+252
+186
+285
+house-repro-factor
+house-repro-factor
+1
+100
+50.0
+1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
