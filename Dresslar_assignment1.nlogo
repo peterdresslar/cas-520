@@ -74,11 +74,7 @@ to go  ;; Step 3
     set character-level character-level + experience
     let new-size ceiling (character-level / 4)
 
-    ;; Replace multiple output-print statements with a single concatenated string
-    output-print (word "Wolf stats - New size: " new-size " | Max size: " max-wolf-size
-                      " | Final size: " (min list new-size max-wolf-size))
-
-    set size min list new-size max-wolf-size
+    set size min list new-size max-wolf-size  ;; higher level wolves appear larger
   ]
 
   ask houses [    ;; Houses turn
@@ -90,24 +86,24 @@ end
 
 to roll-to-move  ;; Step 5.0
   ;; Roll a d10. 2-9 are cardinal directions, 10 is random, 1 is stay put.
-  let roll 1 * (random 10) + 1      ;;  how does netlogo not have dnd dice primitives
+  let roll 1 * (random 10) + 1      ;; how does netlogo not have dnd dice primitives
   if roll = 1 [
     ;; pass
   ]
-  if roll > 1  [                    ;;  how to get to cardinal directions... ?
+  if roll > 1  [                    ;; how to get to cardinal directions... ?
     rt (45 * (roll - 1))
-    fd random 3 * (random 6) + 3    ;;  I think that is 3d6?
+    fd random 3 * (random 6) + 3    ;; I think that is 3d6?
   ]
 end
 
-to-report check-for-attack             ;;  Step 7
+to-report check-for-attack             ;; Step 7
   let experience 0
-  if any? houses-here [                ;;  Step 7.1
-    let this-house one-of houses-here  ;;  Step 7.2
+  if any? houses-here [                ;; Step 7.1
+    let this-house one-of houses-here  ;; Step 7.2
 
     let this-wolf-cl character-level
 
-    let breath-dc 8 + (constitution / 4)  ;; dnd 5e style breath weapon damage! via reddit, of course.
+    let breath-dc ceiling (8 + (constitution / 4))  ;; dnd 5e style breath weapon damage! via reddit, of course.
 
     ;; determine house "saving throw" based on type (higher is better)
     let save-bonus 0
@@ -122,7 +118,15 @@ to-report check-for-attack             ;;  Step 7
       output-print (word "Rolling for wolf level " this-wolf-cl)
 
       ;; breath weapons deal more damage at higher wolf character-levels
-      let base-damage ceiling (this-wolf-cl / 2)
+      ;; to do this we use damage dice
+      let num-dice ceiling (this-wolf-cl / 2)         ;; add a die every 2 levels, see (imaginary) monster manual
+      if num-dice < 1 [ set num-dice 1 ]
+
+      let base-damage 0
+      repeat num-dice [  ;; for however many dice
+        set base-damage base-damage + (1 * (random 6) + 1)  ;; roll a d6, and tally it
+      ]
+      set base-damage base-damage + wolf-bonus
 
       let save-roll (random 20) + 1 + save-bonus
 
@@ -132,16 +136,18 @@ to-report check-for-attack             ;;  Step 7
         output-print (word "Save failed: roll: " save-roll " vs. " breath-dc)
         output-print (word "Damage is: " damage)
         set hit-points hit-points - (damage)
+        output-print (word "House hit points are now: " hit-points)
       ] [
         ;; Second case - save succeeded
         let damage base-damage / 2
         output-print (word "Save succeeded: roll: " save-roll " vs. " breath-dc)
         output-print (word "Damage is: " damage " (halved)")
         set hit-points hit-points - (damage)
+        output-print (word "House hit points are now: " hit-points)
       ]
 
       if hit-points <= 0 [  ;; never good
-        if sound-on [       ;;  multimedia experience
+        if sound-on [       ;; multimedia experience
           if grass? [ sound:play-drum "SPLASH CYMBAL" 64 ]
           if wood? [ sound:play-drum "LOW WOOD BLOCK" 64 ]
           if brick? [ sound:play-drum "BASS DRUM 1" 64 ]
@@ -164,7 +170,7 @@ end
 to build-new-house   ;; Step 8
   let build-chance 0
 
-  let crowding-factor count houses in-radius 5      ;; Get the count of houses
+  let crowding-factor count houses in-radius 4      ;; Get the count of houses
   if crowding-factor = 0 [ set crowding-factor 1 ]  ;; Avoid division by zero
 
   let reproduction-factor house-repro-factor                        ;; slider 1-100 make sure no zeros allowed!
@@ -172,7 +178,7 @@ to build-new-house   ;; Step 8
   if wood? [ set reproduction-factor (house-repro-factor * 1.0) ]
   if brick? [ set reproduction-factor (house-repro-factor * 0.7) ]
 
-  set build-chance ((reproduction-factor + charisma) / crowding-factor)  ;; Only charisma can help with crowding
+  set build-chance ((reproduction-factor + (charisma * 1.5)) / crowding-factor)  ;; Only charisma can help with crowding
 
   output-print (word "charisma: " charisma " | crowding-factor: " crowding-factor)
   output-print (word "build-chance: " build-chance)
@@ -180,26 +186,46 @@ to build-new-house   ;; Step 8
   let build-roll random 100  ;; 1d100!
   output-print (word "build-roll: " build-roll)
 
-  if build-roll > build-chance [
-    hatch 1 [
-      move-to one-of patches
+  if build-roll < build-chance [  ;; higher build change is easier
+    hatch-houses 1 [
+      output-print (word "building house with that will inherit: " charisma grass? wood? brick?)
+
+      move-to one-of patches in-radius 3 with [not any? houses-here] ;; don't stack houses
+      if patch-here = nobody [ move-to one-of patches ]              ;; fallback
+
+      (ifelse
+        grass? [
+          set hit-points ((random 6) + 1) * grass-hit-dice
+          output-print (word "Grass house hatched with " hit-points " hp.")
+        ]
+        wood? [
+          set hit-points ((random 6) + 1) * wood-hit-dice
+          output-print (word "Wood house hatched with " hit-points " hp.")
+        ]
+        brick? [
+          set hit-points ((random 6) + 1) * brick-hit-dice
+          output-print (word "Brick house hatched with " hit-points " hp.")
+        ])
     ]
   ]
 end
 
 to update-plot
-  set-current-plot "Census"
-  set-current-plot-pen "Wolves"
-  plot count wolves
 
-  set-current-plot-pen "Grass Houses"
-  plot count houses with [grass?]
+  ;; seems to massively harm performance? maybe next time.
 
-  set-current-plot-pen "Wood Houses"
-  plot count houses with [wood?]
+  ;; set-current-plot "Census"
+  ;; set-current-plot-pen "Wolves"
+  ;; plot count wolves
 
-  set-current-plot-pen "Brick Houses"
-  plot count houses with [brick?]
+  ;; set-current-plot-pen "Grass Houses"
+  ;; plot count houses with [grass?]
+
+  ;; set-current-plot-pen "Wood Houses"
+  ;; plot count houses with [wood?]
+
+  ;; set-current-plot-pen "Brick Houses"
+  ;; plot count houses with [brick?]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
