@@ -73,12 +73,12 @@ to go  ;; Step 3
     let experience check-for-attack
     set character-level character-level + experience
     let new-size ceiling (character-level / 4)
-    output-print "new-size"
-    output-print new-size
-    output-print max-wolf-size
-    output-print max-wolf-size
-    set size min list new-size max-wolf-size  ;; yuck
-    output-print size
+    
+    ;; Replace multiple output-print statements with a single concatenated string
+    output-print (word "Wolf stats - New size: " new-size " | Max size: " max-wolf-size 
+                      " | Final size: " (min list new-size max-wolf-size))
+                      
+    set size min list new-size max-wolf-size
   ]
 
   ; Houses try to reproduce based on their building type.
@@ -152,8 +152,10 @@ end
 
 to build-new-house  ;; Step 8
   let build-chance 0
-  let crowding-factor count houses in-radius 5  ;; check if there are nearby houses in-radius 5
-
+  
+  let crowding-factor count houses in-radius 5  ;; Get the count of houses
+  if crowding-factor = 0 [ set crowding-factor 1 ]  ;; Avoid division by zero
+  
   let reproduction-factor house-repro-factor  ;; slider 1-100 make sure no zeros allowed!
   if grass? [ set reproduction-factor (house-repro-factor * 1.3) ]  ;; Repro differences per Step 8 instructions.
   if wood? [ set reproduction-factor (house-repro-factor * 1.0) ]
@@ -161,20 +163,13 @@ to build-new-house  ;; Step 8
 
   set build-chance ((reproduction-factor + charisma) / crowding-factor)  ;; Only charisma can help with crowding
 
-  output-print "charisma: "
-  output-print charisma
-  output-print "crowding-factor: "
-  output-print crowding-factor
-  output-print "bulid-chance: "
-  output-print build-chance
+  output-print (word "charisma: " charisma " | crowding-factor: " crowding-factor)
+  output-print (word "build-chance: " build-chance)
 
   let build-roll random 100  ;; 1d100!
-
-  output-print "build-roll"
-  output-print build-roll
+  output-print (word "build-roll: " build-roll)
 
   if build-roll > build-chance [
-
     hatch 1 [
       move-to one-of patches
     ]
