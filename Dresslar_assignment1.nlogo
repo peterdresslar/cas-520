@@ -8,18 +8,18 @@ extensions [sound]
 breed [wolves wolf]  ;; Step 4
 breed [houses house]
 
-globals [ ;; iʻve got my dungeon masterʻs guide.
+globals [  ;; iʻve got my dungeon masterʻs guide.
   grass-armor-class
   wood-armor-class
   brick-armor-class
   max-wolf-size
 ]
 
-houses-own [grass? wood? brick? hit-points charisma]  ;; step 6
-wolves-own [constitution character-level]  ;; for breath weapon, naturally.
+houses-own [grass? wood? brick? hit-points charisma]     ;; step 6
+wolves-own [constitution character-level]                ;; for breath weapon, naturally.
 
-to setup ;; Step 3
-  clear-all  ;; Step 3.1
+to setup       ;; Step 3
+  clear-all    ;; Step 3.1
   reset-ticks  ;; Step 3.1
 
   set grass-armor-class 8
@@ -32,7 +32,7 @@ to setup ;; Step 3
     set shape "wolf"
     set color gray
     set size 1
-    set constitution (3 * ((random 6) + 3)) + wolf-bonus ;; 3d6 + 2  ;; wolves notably tough
+    set constitution (3 * ((random 6) + 3)) + wolf-bonus  ;; 3d6 + 2  ;; wolves notably tough
     set character-level 1
   ]
 
@@ -41,27 +41,27 @@ to setup ;; Step 3
     set shape "house"
     set size 1
 
-    set grass? false  ;; step 6.1
+    set grass? false     ;; step 6.1
     set wood? false
     set brick? false
 
-    let chance random 3 ;; 1d6 divided by 2
+    let chance random 3  ;; 1d6 divided by 2
     if chance = 0 [
       set grass? true
       set color green
-      set hit-points ((random 6) + 1) * grass-hit-dice  ;; random d6 roll
+      set hit-points ((random 6) + 1) * grass-hit-dice     ;; random d6 roll
       set charisma (3 * ((random 6) + 3)) + house-bonus
     ]
     if chance = 1 [
       set wood? true
       set color brown
-      set hit-points ((random 6) + 1) * wood-hit-dice  ;; random d6 roll
+      set hit-points ((random 6) + 1) * wood-hit-dice      ;; random d6 roll
       set charisma (3 * ((random 6) + 3)) + house-bonus
     ]
     if chance = 2 [
       set brick? true
       set color red
-      set hit-points ((random 6) + 1) * brick-hit-dice  ;; random d6 roll
+      set hit-points ((random 6) + 1) * brick-hit-dice     ;; random d6 roll
       set charisma (3 * ((random 6) + 3)) + house-bonus
     ]
   ]
@@ -73,16 +73,15 @@ to go  ;; Step 3
     let experience check-for-attack
     set character-level character-level + experience
     let new-size ceiling (character-level / 4)
-    
+
     ;; Replace multiple output-print statements with a single concatenated string
-    output-print (word "Wolf stats - New size: " new-size " | Max size: " max-wolf-size 
+    output-print (word "Wolf stats - New size: " new-size " | Max size: " max-wolf-size
                       " | Final size: " (min list new-size max-wolf-size))
-                      
+
     set size min list new-size max-wolf-size
   ]
 
-  ; Houses try to reproduce based on their building type.
-  ask houses [
+  ask houses [    ;; Houses turn
     build-new-house
   ]
 
@@ -90,73 +89,85 @@ to go  ;; Step 3
 end
 
 to roll-to-move  ;; Step 5.0
-; Roll a d10. 2-9 are cardinal directions, 10 is random, 1 is stay put.
-  let roll random 10
+  ;; Roll a d10. 2-9 are cardinal directions, 10 is random, 1 is stay put.
+  let roll 1 * (random 10) + 1      ;;  how does netlogo not have dnd dice primitives
   if roll = 1 [
     ;; pass
   ]
-  if roll > 1  [  ;; hmmmm
+  if roll > 1  [                    ;;  how to get to cardinal directions... ?
     rt (45 * (roll - 1))
-    fd random 15 + 3    ;;  I think that is 3d6?
+    fd random 3 * (random 6) + 3    ;;  I think that is 3d6?
   ]
 end
 
-to-report check-for-attack  ;; Step 7
+to-report check-for-attack             ;;  Step 7
   let experience 0
-  if any? houses-here [  ;; Step 7.1
-    let this-house one-of houses-here  ;; Step 7.2
+  if any? houses-here [                ;;  Step 7.1
+    let this-house one-of houses-here  ;;  Step 7.2
 
     let this-wolf-cl character-level
 
-    ; What Step are we on?
     let breath-dc 8 + (constitution / 4)  ;; dnd 5e style breath weapon damage! via reddit, of course.
 
-    ; Determine house "saving throw" based on type (higher is better)
+    ;; determine house "saving throw" based on type (higher is better)
     let save-bonus 0
     if [grass?] of this-house [ set save-bonus (grass-armor-class - 8) / 2 ]
     if [wood?] of this-house [ set save-bonus (wood-armor-class - 8) / 2 ]
     if [brick?] of this-house [ set save-bonus (brick-armor-class - 8) / 2 ]
 
-    let save-roll (random 20) + 1 + save-bonus
     let house-destroyed? false
 
-    ; Saving throw halves damage
+    ;; Saving throw halves damage
     ask this-house [
-      ; breath weapons deal more damage at higher character-levels
-      let damage ceiling (this-wolf-cl / 2)
-      set hit-points hit-points - damage  ;; apply hit
+      output-print (word "Rolling for wolf level " this-wolf-cl)
 
-      if save-roll < breath-dc [
-        set hit-points hit-points - (damage / 2)  ;; half damage if save is failed
+      ;; breath weapons deal more damage at higher wolf character-levels
+      let base-damage ceiling (this-wolf-cl / 2)
+
+      let save-roll (random 20) + 1 + save-bonus
+
+      ifelse save-roll < breath-dc [
+        ;; this is like trinary?
+        let damage base-damage
+        output-print (word "Save failed: roll: " save-roll " vs. " breath-dc)
+        output-print (word "Damage is: " damage)
+        set hit-points hit-points - (damage)
+      ] [
+        ;; Second case - save succeeded
+        let damage base-damage / 2
+        output-print (word "Save succeeded: roll: " save-roll " vs. " breath-dc)
+        output-print (word "Damage is: " damage " (halved)")
+        set hit-points hit-points - (damage)
       ]
 
-      if hit-points <= 0 [
-        if sound-on [
+      if hit-points <= 0 [  ;; never good
+        if sound-on [       ;;  multimedia experience
           if grass? [ sound:play-drum "SPLASH CYMBAL" 64 ]
           if wood? [ sound:play-drum "LOW WOOD BLOCK" 64 ]
           if brick? [ sound:play-drum "BASS DRUM 1" 64 ]
         ]
-        ; Mark that the house will be destroyed
+
         set house-destroyed? true
         die
       ]
     ]
 
-    ; If the house was destroyed, award experience
+    ;; If the house was destroyed, award wolf experience
     if house-destroyed? [
       set experience 1
     ]
   ]
-  report experience  ; Return the experience gained
+
+  report experience  ;; return the experience
 end
 
-to build-new-house  ;; Step 8
+to build-new-house   ;; Step 8
   let build-chance 0
-  
-  let crowding-factor count houses in-radius 5  ;; Get the count of houses
+
+  let crowding-factor count houses in-radius 5      ;; Get the count of houses
   if crowding-factor = 0 [ set crowding-factor 1 ]  ;; Avoid division by zero
-  
-  let reproduction-factor house-repro-factor  ;; slider 1-100 make sure no zeros allowed!
+
+  let reproduction-factor house-repro-factor                        ;; slider 1-100 make sure no zeros allowed!
   if grass? [ set reproduction-factor (house-repro-factor * 1.3) ]  ;; Repro differences per Step 8 instructions.
   if wood? [ set reproduction-factor (house-repro-factor * 1.0) ]
   if brick? [ set reproduction-factor (house-repro-factor * 0.7) ]
