@@ -8,7 +8,7 @@ extensions [sound]
 breed [wolves wolf]  ;; Step 4
 breed [houses house]
 
-houses-own [grass? wood? brick?]
+houses-own [grass? wood? brick?]  ;; step 6
 
 to setup ;; Step 3
   clear-all  ;; Step 3.1
@@ -21,12 +21,12 @@ to setup ;; Step 3
     set size 1
   ]
 
-  create-houses num-houses [  ;; Step 4.1 4.2
+ create-houses num-houses [  ;; Step 4.1 4.2
     setxy random-xcor random-ycor
     set shape "house"
     set size 1
 
-    set grass? false
+    set grass? false  ;; step 6.1
     set wood? false
     set brick? false
 
@@ -48,7 +48,7 @@ end
 
 to go  ;; Step 3
   ask wolves [
-    move-wolf
+    roll-to-move  ;; Step 5.1
     huff-puff-1d20
   ]
 
@@ -60,16 +60,23 @@ to go  ;; Step 3
   tick  ;; Step 3.2
 end
 
-to move-wolf
-  rt random 360   ;; Turn a random angle between 0 and 359 degrees
-  fd random 20    ;; Make a random move forward up to 20 steps
+to roll-to-move  ;; Step 5.0
+; Roll a d10. 2-9 are cardinal directions, 10 is random, 1 is stay put.
+  let roll random 10
+  if roll = 1 [
+    ;; pass
+  ]
+  if roll > 1  [  ;; hmmmm
+    rt (45 * (roll - 1))
+    fd random 15 + 3    ;;  I think that is 3d6?
+  ]
 end
 
-to huff-puff-1d20
-  if any? houses-here [
-    let this-house one-of houses-here
+to huff-puff-1d20  ;; Step 7
+  if any? houses-here [  ;; Step 7.1
+    let this-house one-of houses-here  ;; Step 7.2
 
-    let destruction-chance 0  ;; using armor class
+    let destruction-chance 0  ;; like armor class!
     if [grass?] of this-house [ set destruction-chance (15 - wolf-to-hit-bonus) ]
     if [wood?] of this-house [ set destruction-chance (10 - wolf-to-hit-bonus) ]
     if [brick?] of this-house [ set destruction-chance (6 - wolf-to-hit-bonus) ]
@@ -86,12 +93,11 @@ to huff-puff-1d20
   ]
 end
 
-; Houses reproduce: they have a chance to "hatch" a new house based on their material.
-to build-new-house
+to build-new-house  ;; step 8
   let build-chance 0
-  if grass? [ set build-chance 90 ]
-  if wood? [ set build-chance 60 ]
-  if brick? [ set build-chance 30 ]
+  if grass? [ set build-chance (100 / grass-hit-dice) ]
+  if wood? [ set build-chance (100 / wood-hit-dice) ]
+  if brick? [ set build-chance (100 / brick-hit-dice) ]
 
   ; If the random check passes, a new house is hatched.
   if build-chance > random 100 [
@@ -218,6 +224,51 @@ wolf-to-hit-bonus
 1
 NIL
 HORIZONTAL
+
+SLIDER
+10
+296
+47
+446
+brick-hit-dice
+brick-hit-dice
+1
+6
+5.0
+1
+1
+d6
+VERTICAL
+
+SLIDER
+56
+296
+93
+446
+wood-hit-dice
+wood-hit-dice
+1
+6
+3.0
+1
+1
+d6
+VERTICAL
+
+SLIDER
+102
+296
+139
+446
+grass-hit-dice
+grass-hit-dice
+1
+6
+2.0
+1
+1
+d6
+VERTICAL
 
 @#$#@#$#@
 ## WHAT IS IT?
