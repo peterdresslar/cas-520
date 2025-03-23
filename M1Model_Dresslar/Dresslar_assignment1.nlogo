@@ -51,20 +51,20 @@ to setup       ;; Step 3
     if chance = 0 [
       set grass? true
       set color green
-      set hit-points ((random 6) + 1) * grass-hit-dice     ;; random d6 roll
-      set charisma (3 * ((random 6) + 3)) + house-bonus
+      set hit-points ((1 * (random 6)) + 1) * grass-hit-dice     ;; random d6 roll, the extra parens are to keep dice rolls clear (to me?)
+      set charisma ((3 * (random 6)) + 3) + house-bonus
     ]
     if chance = 1 [
       set wood? true
       set color brown
-      set hit-points ((random 6) + 1) * wood-hit-dice      ;; random d6 roll
-      set charisma (3 * ((random 6) + 3)) + house-bonus
+      set hit-points ((1 * (random 6)) + 1) * wood-hit-dice
+      set charisma ((3 * (random 6)) + 3) + house-bonus
     ]
     if chance = 2 [
       set brick? true
       set color red
-      set hit-points ((random 6) + 1) * brick-hit-dice     ;; random d6 roll
-      set charisma (3 * ((random 6) + 3)) + house-bonus
+      set hit-points ((1 * (random 6)) + 1) * brick-hit-dice
+      set charisma ((3 * (random 6)) + 3) + house-bonus
     ]
   ]
 end
@@ -89,13 +89,13 @@ end
 
 to roll-to-move  ;; Step 5.0
   ;; Roll a d10. 2-9 are cardinal directions, 10 is random, 1 is stay put.
-  let roll 1 * (random 10) + 1      ;; how does netlogo not have dnd dice primitives
+  let roll ((1 * (random 10)) + 1)      ;; how does netlogo not have dnd dice primitives
   if roll = 1 [
     ;; pass
   ]
   if roll > 1  [                    ;; how to get to cardinal directions... ?
     rt (45 * (roll - 1))
-    fd random 3 * (random 6) + 3    ;; I think that is 3d6?
+    fd ((3 * (random 6)) + 3)       ;; I think that is 3d6?
   ]
 end
 
@@ -127,11 +127,11 @@ to-report check-for-attack             ;; Step 7
 
       let base-damage 0
       repeat num-dice [  ;; for however many dice
-        set base-damage base-damage + (1 * (random 6) + 1)  ;; roll a d6, and tally it
+        set base-damage base-damage + ((1 * (random 6)) + 1)  ;; roll a d6, and tally it
       ]
       set base-damage base-damage + wolf-bonus
 
-      let save-roll (random 20) + 1 + save-bonus
+      let save-roll ((1 * (random 20)) + 1) + save-bonus
 
       ifelse save-roll < breath-dc [
         ;; this is like trinary?
@@ -180,7 +180,7 @@ end
 to build-new-house   ;; Step 8
   let build-chance 0
 
-  let crowding-factor count houses in-radius 4      ;; Get the count of houses
+  let crowding-factor count houses in-radius 5      ;; Get the count of houses
   if crowding-factor = 0 [ set crowding-factor 1 ]  ;; Avoid division by zero
 
   let reproduction-factor house-repro-factor                        ;; slider 1-100 make sure no zeros allowed!
@@ -188,32 +188,36 @@ to build-new-house   ;; Step 8
   if wood? [ set reproduction-factor (house-repro-factor * 1.0) ]
   if brick? [ set reproduction-factor (house-repro-factor * 0.7) ]
 
-  set build-chance ((reproduction-factor + (charisma * 1.5)) / crowding-factor)  ;; Only charisma can help with crowding
+  set build-chance ((reproduction-factor + (charisma * 2)) / crowding-factor)  ;; Only charisma can help with crowding
 
   ;; output-print (word "charisma: " charisma " | crowding-factor: " crowding-factor)
   ;; output-print (word "build-chance: " build-chance)
 
-  let build-roll random 100  ;; 1d100!
+  let build-roll random 100  ;; 1d100! weʻll just leave it like this
   ;; output-print (word "build-roll: " build-roll)
 
   if build-roll < build-chance [  ;; higher build change is easier
-    hatch-houses 1 [
-      ;; output-print (word "building house with that will inherit: " charisma grass? wood? brick?)
+    ;; tricky bit: trying to hatch in a full radius will crash the hatch
+    let empty-patch one-of patches in-radius 5 with [not any? houses-here]
+    if empty-patch = nobody [
+      stop  ;; nope
+    ]
 
-      move-to one-of patches in-radius 3 with [not any? houses-here] ;; don't stack houses
-      if patch-here = nobody [ move-to one-of patches ]              ;; fallback
+    hatch-houses 1 [
+      ;; We've already confirmed empty-patch is not nobody
+      move-to empty-patch
 
       (ifelse
         grass? [
-          set hit-points ((random 6) + 1) * grass-hit-dice
+          set hit-points ((1 * (random 6)) + 1) * grass-hit-dice
           output-print (word "Grass house hatched with " hit-points " hp.")
         ]
         wood? [
-          set hit-points ((random 6) + 1) * wood-hit-dice
+          set hit-points ((1 * (random 6)) + 1) * wood-hit-dice
           output-print (word "Wood house hatched with " hit-points " hp.")
         ]
         brick? [
-          set hit-points ((random 6) + 1) * brick-hit-dice
+          set hit-points ((1 * (random 6)) + 1) * brick-hit-dice
           output-print (word "Brick house hatched with " hit-points " hp.")
         ])
     ]
@@ -468,7 +472,7 @@ The command center has verbose output. Too verbose.
 
 Note that wolves gain experience over time, which improves their ability to damage. The houses do not level up. So, this is more of a Skyrim experience than a Souls experience. You know, from science.
 
-When setting the sliders, consider that houses should lose power over time... but there is an inheritance function for charisma!
+When setting the sliders, consider that houses should lose power over time... but, wait! Charisma impacts reproduction. And, there is an inheritance function for charisma! Maybe we should expect charisma to provide some kind of fitness? A plot is provided so we can see.
 
 ## EXTENDING THE MODEL
 
