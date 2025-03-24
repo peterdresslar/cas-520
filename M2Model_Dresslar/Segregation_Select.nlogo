@@ -58,6 +58,7 @@ to-report check-new-spot [candidate-patch checking-turtle]
   let check-other-nearby count (turtles-on neighbor-patches) with [ color != [ color ] of checking-turtle ]
   let check-total-nearby check-similar-nearby + check-other-nearby
   let check-happy? check-similar-nearby >= (%-similar-wanted * check-total-nearby / 100)
+  if verbose-checking? [output-print (word "check-happy " check-happy?) ]
   report check-happy?
 end
 
@@ -301,10 +302,10 @@ count turtles
 SWITCH
 800
 335
-967
+972
 368
-verbose-checking
-verbose-checking
+verbose-checking?
+verbose-checking?
 1
 1
 -1000
