@@ -53,8 +53,9 @@ end
 ; since we are checking a patch and not a turtle. the logic should be
 ; identical, though.
 to-report check-new-spot [candidate-patch checking-turtle]
-  let check-similar-nearby count turtles-on ([neighbors] of candidate-patch) with [ color = [ color ] of checking-turtle ]
-  let check-other-nearby count turtles-on ([neighbors] of candidate-patch) with [ color != [ color ] of checking-turtle ]
+  let neighbor-patches [neighbors] of candidate-patch  ; critical since we are running in turtle context
+  let check-similar-nearby count (turtles-on neighbor-patches) with [ color = [ color ] of checking-turtle ]
+  let check-other-nearby count (turtles-on neighbor-patches) with [ color != [ color ] of checking-turtle ]
   let check-total-nearby check-similar-nearby + check-other-nearby
   let check-happy? check-similar-nearby >= (%-similar-wanted * check-total-nearby / 100)
   report check-happy?
@@ -175,7 +176,7 @@ SLIDER
 %-similar-wanted
 0
 100
-30.0
+76.0
 1
 1
 %
@@ -251,7 +252,7 @@ density
 density
 50
 99
-95.0
+81.0
 1
 1
 %
@@ -296,6 +297,17 @@ count turtles
 1
 1
 11
+
+SWITCH
+800
+335
+967
+368
+verbose-checking
+verbose-checking
+1
+1
+-1000
 
 @#$#@#$#@
 ## WHAT IS IT?
