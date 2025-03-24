@@ -47,11 +47,28 @@ to move-unhappy-turtles
     [ find-new-spot ]
 end
 
+; DRESSLAR NEW PROC
+; check if happy? at new spot
+; note that we have to vary ever so slightly the update-turtles proc
+; since we are checking a patch and not a turtle. the logic should be
+; identical, though.
+to-report check-new-spot [candidate-patch checking-turtle]
+  let check-similar-nearby count turtles-on ([neighbors] of candidate-patch) with [ color = [ color ] of checking-turtle ]
+  let check-other-nearby count turtles-on ([neighbors] of candidate-patch) with [ color != [ color ] of checking-turtle ]
+  let check-total-nearby check-similar-nearby + check-other-nearby
+  let check-happy? check-similar-nearby >= (%-similar-wanted * check-total-nearby / 100)
+  report check-happy?
+end
+
 ; move until we find an unoccupied spot
 to find-new-spot
   rt random-float 360
   fd random-float 10
   if any? other turtles-here [ find-new-spot ] ; keep going until we find an unoccupied patch
+  let possible-new-spot patch-here  ;; DRESSLAR NEW CODE START
+  if check-new-spot possible-new-spot self [  ; need to know location and color
+    move-to possible-new-spot  ; only move if happy at new spot
+  ]  ;; DRESSLAR NEW CODE STOP
   move-to patch-here  ; move to center of patch
 end
 
@@ -689,7 +706,7 @@ false
 Polygon -7500403 true true 300 60 225 0 0 225 60 300
 Polygon -7500403 true true 0 60 75 0 300 240 225 300
 @#$#@#$#@
-NetLogo 6.3.0
+NetLogo 6.4.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
