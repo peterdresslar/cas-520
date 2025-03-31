@@ -1,9 +1,9 @@
-breed [ buildings building ]
+breed [ houses house ]  ;; kept forgetting these were called buildings, so they are not anymore.
 
 breed [ walkers walker ]
 walkers-own [ goal ]
 
-buildings-own [ house-number ]
+houses-own [ house-number ]
 
 patches-own [  ;; one-lining these is annoying, sorry.
   popularity
@@ -27,7 +27,7 @@ globals [
 to setup
   clear-all
   set houses-built 0
-  set-default-shape buildings "house"
+  set-default-shape houses "house"
   ask patches [
      set pcolor green
      set on-line? false
@@ -46,7 +46,7 @@ end
 to setup-with-houses
   clear-all
   set houses-built 0
-  set-default-shape buildings "house"
+  set-default-shape houses "house"
     ask patches [
       set pcolor green
       set on-line? false
@@ -64,10 +64,10 @@ to setup-with-houses
 end
 
 
-;; Click to place buildings
+;; Click to place houses
 ;; Have stuff unbecome path once it decays below a certain popularity threshold
 to go
-  check-building-placement
+  check-house-placement
   move-walkers
   decay-popularity
   recolor-patches
@@ -82,57 +82,57 @@ to houses-setup
   ;; https://reference.wolfram.com/language/ref/RegularPolygon.html.en
   let start-xcor 0
   let start-ycor 33
-  let houses (range 0 houses-to-setup)
+  let houses-range (range 0 houses-to-setup)
   let degrees-per-house 360 / houses-to-setup
   ;; let radians-per-house (degrees-per-house * (pi / 180))  ;; canʻt use radians in NL without extensions, though
   output-print(word houses-to-setup " houses to setup " degrees-per-house " degrees ")
   output-print(houses)
-  let house 0
+  let house-i 0
   ;; let this-radians 0  ;; sigh
   let this-degrees 0
   let this-xcor start-xcor
   let this-ycor start-ycor
   if houses-to-setup > 1 [
     ;; for each additional house
-    foreach houses [
-      ;; set this-radians (house * radians-per-house)
-      set this-degrees (house * degrees-per-house)  ;; welp this works
-      let random-sign (1 - (random 2 * 1))  ;; heh.
-      set this-xcor (unit-circle-radius * (cos this-degrees)) + (random-sign * ((weirdness * (13 - houses-to-setup)) / unit-circle-radius))
-      set this-ycor (unit-circle-radius * (sin this-degrees)) + (random-sign * ((weirdness * (13 - houses-to-setup)) / unit-circle-radius))
+    foreach houses-range [
+      ;; set this-radians (house-i * radians-per-house)
+      set this-degrees (house-i * degrees-per-house)  ;; welp this works
+      let random-posneg (1 - (random 2 * 1))  ;; heh.
+      set this-xcor (unit-circle-radius * (cos this-degrees)) + (random-posneg * ((weirdness * (13 - houses-to-setup)) / unit-circle-radius))
+      set this-ycor (unit-circle-radius * (sin this-degrees)) + (random-posneg * ((weirdness * (13 - houses-to-setup)) / unit-circle-radius))
       output-print (word this-degrees " " this-xcor " " this-ycor)
-      ask patch this-xcor this-ycor [toggle-building]
-      set house (house + 1)
+      ask patch this-xcor this-ycor [toggle-house]
+      set house-i (house-i + 1)
     ]
   ]
 end
 
-to check-building-placement
+to check-house-placement
   ifelse mouse-down? [
     if not mouse-clicked? [
       set mouse-clicked? true
-      ask patch mouse-xcor mouse-ycor [ toggle-building ]
+      ask patch mouse-xcor mouse-ycor [ toggle-house ]
     ]
   ] [
     set mouse-clicked? false
   ]
 end
 
-to toggle-building
-  let nearby-buildings buildings in-radius 4
-  ifelse any? nearby-buildings [
-    ; if there is a building near where the mouse was clicked
+to toggle-house
+  let nearby-houses houses in-radius 4
+  ifelse any? nearby-houses [
+    ; if there is a house near where the mouse was clicked
     ; (and there should always only be one), we remove it and
-    ask nearby-buildings [ die ]
+    ask nearby-houses [ die ]
     set houses-built (houses-built - 1)
     ; remove-line houses-built
   ] [
-    ; if there was no buildings near where
+    ; if there was no houses near where
     ; the mouse was clicked, we create one
-    sprout-buildings 1 [
+    sprout-houses 1 [
       set color red
       set size 4
-      set house-number houses-built + 1  ;; since we technically donʻt have a sprout-buildings callback.
+      set house-number houses-built + 1  ;; since we technically donʻt have a sprout-houses callback.
     ]
     set houses-built (houses-built + 1)
     add-line houses-built
@@ -156,8 +156,8 @@ end
 to move-walkers
   ask walkers [
     ifelse patch-here = goal [
-      ifelse count buildings >= 2 [
-        set goal [ patch-here ] of one-of buildings
+      ifelse count houses >= 2 [
+        set goal [ patch-here ] of one-of houses
       ] [
         set goal one-of patches
       ]
