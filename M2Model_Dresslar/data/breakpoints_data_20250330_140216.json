@@ -1,0 +1,136 @@
+[
+  {
+    "density": 80.0,
+    "breakpoint": 74.98,
+    "average_average_similarity": 87.32307375051816,
+    "history": [
+      {
+        "iteration": 0,
+        "similarity-wanted-midpoint": 50.5,
+        "ticks-to-halt": 42.0
+      },
+      {
+        "iteration": 1,
+        "similarity-wanted-midpoint": 75.25,
+        "ticks-to-halt": 1000.0
+      },
+      {
+        "iteration": 2,
+        "similarity-wanted-midpoint": 62.88,
+        "ticks-to-halt": 54.0
+      },
+      {
+        "iteration": 3,
+        "similarity-wanted-midpoint": 69.06,
+        "ticks-to-halt": 76.0
+      },
+      {
+        "iteration": 4,
+        "similarity-wanted-midpoint": 72.16,
+        "ticks-to-halt": 153.0
+      },
+      {
+        "iteration": 5,
+        "similarity-wanted-midpoint": 73.7,
+        "ticks-to-halt": 163.0
+      },
+      {
+        "iteration": 6,
+        "similarity-wanted-midpoint": 74.47,
+        "ticks-to-halt": 181.0
+      },
+      {
+        "iteration": 7,
+        "similarity-wanted-midpoint": 74.86,
+        "ticks-to-halt": 143.0
+      },
+      {
+        "iteration": 8,
+        "similarity-wanted-midpoint": 75.06,
+        "ticks-to-halt": 1000.0
+      },
+      {
+        "iteration": 9,
+        "similarity-wanted-midpoint": 74.96,
+        "ticks-to-halt": 184.0
+      },
+      {
+        "iteration": 10,
+        "similarity-wanted-midpoint": 75.01,
+        "ticks-to-halt": 1000.0
+      },
+      {
+        "iteration": 11,
+        "similarity-wanted-midpoint": 74.98,
+        "ticks-to-halt": 200.0
+      }
+    ]
+  },
+  {
+    "density": 90.0,
+    "breakpoint": 74.98,
+    "average_average_similarity": 87.17536039978035,
+    "history": [
+      {
+        "iteration": 0,
+        "similarity-wanted-midpoint": 50.5,
+        "ticks-to-halt": 49.0
+      },
+      {
+        "iteration": 1,
+        "similarity-wanted-midpoint": 75.25,
+        "ticks-to-halt": 1000.0
+      },
+      {
+        "iteration": 2,
+        "similarity-wanted-midpoint": 62.88,
+        "ticks-to-halt": 104.0
+      },
+      {
+        "iteration": 3,
+        "similarity-wanted-midpoint": 69.06,
+        "ticks-to-halt": 239.0
+      },
+      {
+        "iteration": 4,
+        "similarity-wanted-midpoint": 72.16,
+        "ticks-to-halt": 296.0
+      },
+      {
+        "iteration": 5,
+        "similarity-wanted-midpoint": 73.7,
+        "ticks-to-halt": 274.0
+      },
+      {
+        "iteration": 6,
+        "similarity-wanted-midpoint": 74.47,
+        "ticks-to-halt": 284.0
+      },
+      {
+        "iteration": 7,
+        "similarity-wanted-midpoint": 74.86,
+        "ticks-to-halt": 282.0
+      },
+      {
+        "iteration": 8,
+        "similarity-wanted-midpoint": 75.06,
+        "ticks-to-halt": 1000.0
+      },
+      {
+        "iteration": 9,
+        "similarity-wanted-midpoint": 74.96,
+        "ticks-to-halt": 251.0
+      },
+      {
+        "iteration": 10,
+        "similarity-wanted-midpoint": 75.01,
+        "ticks-to-halt": 1000.0
+      },
+      {
+        "iteration": 11,
+        "similarity-wanted-midpoint": 74.98,
+        "ticks-to-halt": 390.0
+      }
+    ]
+  }
+]
