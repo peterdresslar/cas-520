@@ -274,7 +274,7 @@ minimum-route-popularity
 minimum-route-popularity
 0
 100
-50.0
+80.0
 1
 1
 NIL
@@ -289,7 +289,7 @@ walker-count
 walker-count
 0
 1000
-154.0
+250.0
 1
 1
 NIL
@@ -319,7 +319,7 @@ popularity-decay-rate
 popularity-decay-rate
 0
 100
-18.0
+4.0
 1
 1
 %
@@ -334,7 +334,7 @@ popularity-per-step
 popularity-per-step
 0
 100
-73.0
+20.0
 1
 1
 NIL
