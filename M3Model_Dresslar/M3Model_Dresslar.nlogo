@@ -27,6 +27,7 @@ globals [
 to setup
   clear-all
   set houses-built 0
+  set lines []  ;; empty list
   set-default-shape houses "house"
   ask patches [
      set pcolor green
@@ -46,6 +47,7 @@ end
 to setup-with-houses
   clear-all
   set houses-built 0
+  set lines []
   set-default-shape houses "house"
     ask patches [
       set pcolor green
@@ -80,26 +82,24 @@ to houses-setup
   ;; we will adapt something like RegularPolygon(n) from Wolfram
   ;; note that theta is angle in radians
   ;; https://reference.wolfram.com/language/ref/RegularPolygon.html.en
-  let start-xcor 0
-  let start-ycor 33
   let houses-range (range 0 houses-to-setup)
   let degrees-per-house 360 / houses-to-setup
   ;; let radians-per-house (degrees-per-house * (pi / 180))  ;; canʻt use radians in NL without extensions, though
   output-print(word houses-to-setup " houses to setup " degrees-per-house " degrees ")
   output-print(houses)
   let house-i 0
-  ;; let this-radians 0  ;; sigh
   let this-degrees 0
-  let this-xcor start-xcor
-  let this-ycor start-ycor
-  if houses-to-setup > 1 [
+  let this-xcor 0
+  let this-ycor house-spacing  ;; house-spacing is the unit-circle-radius we will use to our delight below.
+
+  if houses-to-setup > 0 [  ;; it should be!
     ;; for each additional house
     foreach houses-range [
       ;; set this-radians (house-i * radians-per-house)
       set this-degrees (house-i * degrees-per-house)  ;; welp this works
       let random-posneg (1 - (random 2 * 1))  ;; heh.
-      set this-xcor (unit-circle-radius * (cos this-degrees)) + (random-posneg * ((weirdness * (13 - houses-to-setup)) / unit-circle-radius))
-      set this-ycor (unit-circle-radius * (sin this-degrees)) + (random-posneg * ((weirdness * (13 - houses-to-setup)) / unit-circle-radius))
+      set this-xcor (house-spacing * (cos this-degrees)) + (random-posneg * ((weirdness * (13 - houses-to-setup)) / house-spacing))  ;; parens are free baby
+      set this-ycor (house-spacing * (sin this-degrees)) + (random-posneg * ((weirdness * (13 - houses-to-setup)) / house-spacing))
       output-print (word this-degrees " " this-xcor " " this-ycor)
       ask patch this-xcor this-ycor [toggle-house]
       set house-i (house-i + 1)
@@ -129,13 +129,15 @@ to toggle-house
   ] [
     ; if there was no houses near where
     ; the mouse was clicked, we create one
+    let this-new-house nobody
     sprout-houses 1 [
       set color red
       set size 4
       set house-number houses-built + 1  ;; since we technically donʻt have a sprout-houses callback.
+      set this-new-house self
     ]
     set houses-built (houses-built + 1)
-    add-line houses-built
+    add-line this-new-house  ;; self has a house-number
   ]
 end
 
@@ -210,25 +212,41 @@ to recolor-patches
 end
 
 
-to add-line [this-house-num]
+to add-line [ this-house ]
 
-  ; we will assume, and this is more or less by the grace of the netlogo gods, that all prior houses are on the line network
-  ; speaking of by the grace of... letʻs just get this program fault out of the way
-  (ifelse
-    this-house-num = 0 [
-      output-print("Error, illegal house number")
-      stop
-    ]
-    this-house-num = 1 [
-      stop
-    ]
-    [  ; do stuff
-  ; with that out of the way, we need to take this house number
-  ; get this house xcor ycor
-  ; for each house
-      stop
-    ])
+  ;; we will assume, and this is more or less by the grace of the netlogo gods, that all prior houses are on the line network
+  ;; speaking of by the grace of... letʻs just get this program fault out of the way
 
+  if [ house-number ] of this-house <= 1 [ stop ] ; no work to do here
+
+  ;; with that out of the way, we need to get this house xcor ycor
+
+  let this-x [ xcor ] of this-house
+  let this-y [ ycor ] of this-house
+
+  ;; and then we need to build an iterable set of the other houses, through which we will loop
+
+  let all-houses-but-this houses with [ self != this-house ]
+
+  ask all-houses-but-this [
+    let other-x [ xcor ] of self
+    let other-y [ ycor ] of self
+    ;; line name is that-house-number--this-house-number (here, we are dealing with that house)
+    let line-name (word ([ house-number ] of self) "--" ([ house-number ] of this-house))
+
+    ;; okay, we have our xes and ys...
+    let line-details (list line-name other-x other-y this-x this-y)
+
+    ;; lines.append(line-details)
+    set lines lput line-details lines  ;; lput == list-put?
+    output-print(word "constructed line: " line-details)
+
+    ;; houses could have lines, but not needed
+
+    ;; now we need to go check patches
+
+
+  ]
 end
 
 
@@ -461,8 +479,8 @@ SLIDER
 55
 240
 88
-unit-circle-radius
-unit-circle-radius
+house-spacing
+house-spacing
 1
 100
 42.0
