@@ -19,7 +19,7 @@ globals [
   non-pathness
   curvilinearity
   entropy
-  houses-built   ;; i just realized these are actually called buildings, but pictures matter
+  houses-built
   lines
   eps
 ]
@@ -135,7 +135,7 @@ to toggle-building
       set house-number houses-built + 1  ;; since we technically donʻt have a sprout-buildings callback.
     ]
     set houses-built (houses-built + 1)
-    add-line houses-built
+    add-line
   ]
 end
 
