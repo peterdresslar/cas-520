@@ -85,7 +85,7 @@ to houses-setup
   let houses (range 0 houses-to-setup)
   let degrees-per-house 360 / houses-to-setup
   ;; let radians-per-house (degrees-per-house * (pi / 180))  ;; canʻt use radians in NL without extensions, though
-  output-print(word houses-to-setup " houses to setup " degrees-per-house " degrees " radians-per-house " rad.")
+  output-print(word houses-to-setup " houses to setup " degrees-per-house " degrees ")
   output-print(houses)
   let house 0
   ;; let this-radians 0  ;; sigh
@@ -125,7 +125,7 @@ to toggle-building
     ; (and there should always only be one), we remove it and
     ask nearby-buildings [ die ]
     set houses-built (houses-built - 1)
-    remove-line houses-built
+    ; remove-line houses-built
   ] [
     ; if there was no buildings near where
     ; the mouse was clicked, we create one
@@ -135,7 +135,7 @@ to toggle-building
       set house-number houses-built + 1  ;; since we technically donʻt have a sprout-buildings callback.
     ]
     set houses-built (houses-built + 1)
-    add-line
+    add-line houses-built
   ]
 end
 
@@ -222,11 +222,14 @@ to add-line [this-house-num]
     this-house-num = 1 [
       stop
     ]
-    ; elsecommands
-
+    [  ; do stuff
   ; with that out of the way, we need to take this house number
   ; get this house xcor ycor
   ; for each house
+      stop
+    ])
+
+end
 
 
 to update-globals
