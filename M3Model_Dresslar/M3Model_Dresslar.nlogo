@@ -208,20 +208,34 @@ to-report check-curvilinearity
   ;; avoid zeroness
   if pathness = 0 or count patches with [ on-line? ] = 0 [ report 0 ]
 
-  ;; have each patch that is path (gray) calculate its distance to the nearest line patch
-  let abs-deviation 0
-  let path-patches patches with [ pcolor = gray ]
+  let out-of-bounds 100 ;; if a path is farther than this from some line, it is probably not part of a curve, but rather just out "in the wild"
 
-  ask path-patches [
+  let path-patches patches with [ pcolor = gray ]
+  let sample-size min list pathness 100  ;; too high a sample-size causes a big slow-down
+  output-print(word "Sample size " sample-size)
+  let paths-sample n-of sample-size patches with [ pcolor = gray ]
+
+  ;; have each patch that is path (gray) calculate its distance to the nearest line patch
+  let abs-deviation 0  ;; initialize collector
+  let patches-checked 0
+
+  ask paths-sample [
     ;; find the nearest patch with on-line? true
     let nearest-line-patch min-one-of patches with [ on-line? ] [ distance myself ]
-    ;; Add the distance to our running total
-    set abs-deviation abs-deviation + distance nearest-line-patch
+    ;; only add to absolute deviation if we are within bounds
+    if distance nearest-line-patch < out-of-bounds [
+      set abs-deviation abs-deviation + distance nearest-line-patch
+      set patches-checked (patches-checked + 1)
+    ]
   ]
 
   ;; just calculate an average over pathness. we may need to update for runnelation
 
-  report abs-deviation / pathness
+  ifelse patches-checked > 0 [   ; avoid div0
+    report abs-deviation / patches-checked
+  ] [
+    report 0
+  ]
 end
 
 to recolor-patches
@@ -588,7 +602,6 @@ false
 "" ""
 PENS
 "pathness" 1.0 0 -14454117 true "" "plot pathness"
-"curvilinearity" 1.0 0 -2674135 true "" "plot curvilinearity"
 
 PLOT
 905
@@ -607,6 +620,24 @@ false
 "" ""
 PENS
 "default" 1.0 0 -16777216 true "" "plot entropy"
+
+PLOT
+905
+500
+1305
+630
+path curvilinearity
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"curvilinearity" 1.0 0 -2674135 true "" "plot curvilinearity"
 
 @#$#@#$#@
 ## WHAT IS IT?
