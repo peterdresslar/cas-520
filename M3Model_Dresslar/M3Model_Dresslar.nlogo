@@ -7,8 +7,9 @@ houses-own [ house-number ]
 
 patches-own [  ;; one-lining these is annoying, sorry.
   popularity
-  on-line?
-  line
+  on-line?   ;; is on a line between houses?
+  line       ;; line-name for line that patch is on
+             ;; patches could be on more than one line, but here we just store the latest one.
 ]
 
 globals [
@@ -22,12 +23,14 @@ globals [
   houses-built
   lines
   eps
+  new-lines-buffer  ;;; this is very sad  :-(
 ]
 
 to setup
   clear-all
   set houses-built 0
   set lines []  ;; empty list
+  set new-lines-buffer []
   set-default-shape houses "house"
   ask patches [
      set pcolor green
@@ -48,6 +51,7 @@ to setup-with-houses
   clear-all
   set houses-built 0
   set lines []
+  set new-lines-buffer []
   set-default-shape houses "house"
     ask patches [
       set pcolor green
@@ -55,6 +59,7 @@ to setup-with-houses
       set line ""
   ]
   houses-setup
+  process-new-lines-buffer  ;; gotta call it here
   create-walkers walker-count [
     setxy random-xcor random-ycor
     set goal one-of patches
@@ -70,6 +75,7 @@ end
 ;; Have stuff unbecome path once it decays below a certain popularity threshold
 to go
   check-house-placement
+  process-new-lines-buffer  ;; but also here
   move-walkers
   decay-popularity
   recolor-patches
@@ -137,7 +143,7 @@ to toggle-house
       set this-new-house self
     ]
     set houses-built (houses-built + 1)
-    add-line this-new-house  ;; self has a house-number
+    add-lines this-new-house  ;; self has a house-number
   ]
 end
 
@@ -198,6 +204,26 @@ to-report best-way-to [ destination ]
 
 end
 
+to-report check-curvilinearity
+  ;; avoid zeroness
+  if pathness = 0 or count patches with [ on-line? ] = 0 [ report 0 ]
+
+  ;; have each patch that is path (gray) calculate its distance to the nearest line patch
+  let abs-deviation 0
+  let path-patches patches with [ pcolor = gray ]
+
+  ask path-patches [
+    ;; find the nearest patch with on-line? true
+    let nearest-line-patch min-one-of patches with [ on-line? ] [ distance myself ]
+    ;; Add the distance to our running total
+    set abs-deviation abs-deviation + distance nearest-line-patch
+  ]
+
+  ;; just calculate an average over pathness. we may need to update for runnelation
+
+  report abs-deviation / pathness
+end
+
 to recolor-patches
   ifelse show-popularity? [
     let max-value (minimum-route-popularity * 3)
@@ -212,7 +238,7 @@ to recolor-patches
 end
 
 
-to add-line [ this-house ]
+to add-lines [ this-house ]
 
   ;; we will assume, and this is more or less by the grace of the netlogo gods, that all prior houses are on the line network
   ;; speaking of by the grace of... letʻs just get this program fault out of the way
@@ -225,7 +251,6 @@ to add-line [ this-house ]
   let this-y [ ycor ] of this-house
 
   ;; and then we need to build an iterable set of the other houses, through which we will loop
-
   let all-houses-but-this houses with [ self != this-house ]
 
   ask all-houses-but-this [
@@ -239,16 +264,53 @@ to add-line [ this-house ]
 
     ;; lines.append(line-details)
     set lines lput line-details lines  ;; lput == list-put?
+
+    set new-lines-buffer lput line-details new-lines-buffer   ;; have to do this for observer context. dumping the lines into a global buffer
+                                                              ;; we cannot otherwise work with patches here
+                                                              ;; a syntactical dealbreaker
+
     output-print(word "constructed line: " line-details)
+  ]
 
-    ;; houses could have lines, but not needed
+end
 
-    ;; now we need to go check patches
-
-
+to process-new-lines-buffer
+  if length new-lines-buffer > 0 [
+    output-print (word "processing " length new-lines-buffer " new lines from buffer.")
+    foreach new-lines-buffer [ line-data ->
+      add-line-to-patches line-data
+    ]
+    ;; Clear the buffer once processed
+    set new-lines-buffer []
   ]
 end
 
+to add-line-to-patches [line-data]
+  ;; wishing for unzip
+  let line-name item 0 line-data
+  let other-x item 1 line-data
+  let other-y item 2 line-data
+  let this-x item 3 line-data
+  let this-y item 4 line-data
+
+  ;; lets use a comment on an SO (https://stackoverflow.com/a/328193/13693304) ... see my comment?
+
+  let distance-line sqrt((this-x - other-x) ^ 2 + (this-y - other-y) ^ 2)  ; # def distance(a, b)
+
+  ask patches [   ;; in other words, for all patches for which this is true:
+    let patch-x pxcor
+    let patch-y pycor
+    let zeta 0.1  ;; tolerance. eps was already taken!
+    let distance-other-this ((distancexy other-x other-y) + (distancexy this-x this-y)) ;; distance to houses, really
+
+    if (abs(distance-other-this - distance-line) < zeta) [  ;; patch is on the line
+      set on-line? true
+      set line line-name  ;; again, this could overwrite, but thatʻs fine
+    ]
+  ]
+
+  output-print(word "patches updated: number of patches with on-line? true is now: " count patches with [on-line?] " out of " count patches "." )
+end
 
 to update-globals
   set eps 1e-10
@@ -264,6 +326,7 @@ to update-globals
     (pathness-p * ln (pathness-p + eps)) +
     (non-pathness-p * ln (non-pathness-p + eps))
   ))
+  set curvilinearity check-curvilinearity  ;;; uh that was a bit of a chore
 end
 
 
@@ -413,7 +476,7 @@ SWITCH
 558
 show-popularity?
 show-popularity?
-0
+1
 1
 -1000
 
@@ -513,7 +576,7 @@ PLOT
 15
 1305
 165
-pathness
+pathness and curvilinearity
 NIL
 pathness
 0.0
@@ -524,7 +587,8 @@ true
 false
 "" ""
 PENS
-"default" 1.0 0 -14454117 true "" "plot pathness"
+"pathness" 1.0 0 -14454117 true "" "plot pathness"
+"curvilinearity" 1.0 0 -2674135 true "" "plot curvilinearity"
 
 PLOT
 905
