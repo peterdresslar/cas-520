@@ -3,7 +3,11 @@ breed [ buildings building ]
 breed [ walkers walker ]
 walkers-own [ goal ]
 
-patches-own [ popularity ]
+patches-own [  ;; one-lining these is annoying, sorry.
+  popularity
+  on-line?
+  line
+]
 
 globals [
   mouse-clicked?
@@ -11,14 +15,22 @@ globals [
   stdev-popularity
   pathness
   non-pathness
+  curvilinearity
   entropy
+  houses-built   ;; sometimes known as destinations
+  lines
   eps
 ]
 
 to setup
   clear-all
+  set houses-built 0
   set-default-shape buildings "house"
-  ask patches [ set pcolor green ]
+  ask patches [
+     set pcolor green
+     set on-line? false
+     set line ""
+  ]
   create-walkers walker-count [
     setxy random-xcor random-ycor
     set goal one-of patches
@@ -31,8 +43,13 @@ end
 
 to setup-with-houses
   clear-all
+  set houses-built 0
   set-default-shape buildings "house"
-  ask patches [ set pcolor green ]
+    ask patches [
+      set pcolor green
+      set on-line? false
+      set line ""
+  ]
   houses-setup
   create-walkers walker-count [
     setxy random-xcor random-ycor
@@ -58,13 +75,14 @@ end
 
 to houses-setup
   ;; use houses-to-setup and weirdness to spawn houses
-  ;; we will adapt RegularPolygon(n) from Wolfram
+  ;; we will adapt something like RegularPolygon(n) from Wolfram
+  ;; note that theta is angle in radians
   ;; https://reference.wolfram.com/language/ref/RegularPolygon.html.en
   let start-xcor 0
   let start-ycor 33
   let houses (range 0 houses-to-setup)
   let degrees-per-house 360 / houses-to-setup
-  let radians-per-house (degrees-per-house * (pi / 180))  ;; canʻt use radians in NL without extensions, though
+  ;; let radians-per-house (degrees-per-house * (pi / 180))  ;; canʻt use radians in NL without extensions, though
   output-print(word houses-to-setup " houses to setup " degrees-per-house " degrees " radians-per-house " rad.")
   output-print(houses)
   let house 0
@@ -76,7 +94,7 @@ to houses-setup
     ;; for each additional house
     foreach houses [
       ;; set this-radians (house * radians-per-house)
-      set this-degrees (house * degrees-per-house)
+      set this-degrees (house * degrees-per-house)  ;; welp this works
       let random-sign (1 - (random 2 * 1))  ;; heh.
       set this-xcor (unit-circle-radius * (cos this-degrees)) + (random-sign * ((weirdness * (13 - houses-to-setup)) / unit-circle-radius))
       set this-ycor (unit-circle-radius * (sin this-degrees)) + (random-sign * ((weirdness * (13 - houses-to-setup)) / unit-circle-radius))
@@ -104,6 +122,8 @@ to toggle-building
     ; if there is a building near where the mouse was clicked
     ; (and there should always only be one), we remove it and
     ask nearby-buildings [ die ]
+    set houses-built (houses-built - 1)
+    remove-line houses-built
   ] [
     ; if there was no buildings near where
     ; the mouse was clicked, we create one
@@ -111,6 +131,8 @@ to toggle-building
       set color red
       set size 4
     ]
+    set houses-built (houses-built + 1)
+    add-line houses-built
   ]
 end
 
@@ -168,6 +190,11 @@ to-report best-way-to [ destination ]
     ; if there are no nearby routes to my destination
     report destination
   ]
+
+end
+
+to set-patches-on-lines
+
 
 end
 
@@ -347,7 +374,7 @@ SWITCH
 558
 show-popularity?
 show-popularity?
-1
+0
 1
 -1000
 
