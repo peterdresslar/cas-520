@@ -5,7 +5,15 @@ walkers-own [ goal ]
 
 patches-own [ popularity ]
 
-globals [ mouse-clicked? ]
+globals [
+  mouse-clicked?
+  avg-popularity
+  stdev-popularity
+  pathness
+  non-pathness
+  entropy
+  eps
+]
 
 to setup
   clear-all
@@ -17,6 +25,7 @@ to setup
     set color yellow
     set size 2
   ]
+  update-globals
   reset-ticks
 end
 
@@ -31,6 +40,7 @@ to setup-with-houses
     set color yellow
     set size 2
   ]
+  update-globals
   reset-ticks
 end
 
@@ -42,6 +52,7 @@ to go
   move-walkers
   decay-popularity
   recolor-patches
+  update-globals
   tick
 end
 
@@ -51,10 +62,9 @@ to houses-setup
   ;; https://reference.wolfram.com/language/ref/RegularPolygon.html.en
   let start-xcor 0
   let start-ycor 33
-  let unit-circle-radius 33  ;; a quarter of the width of the grid?
   let houses (range 0 houses-to-setup)
   let degrees-per-house 360 / houses-to-setup
-  let radians-per-house (degrees-per-house * (pi / 180))  ;; canʻt use radians in NL though
+  let radians-per-house (degrees-per-house * (pi / 180))  ;; canʻt use radians in NL without extensions, though
   output-print(word houses-to-setup " houses to setup " degrees-per-house " degrees " radians-per-house " rad.")
   output-print(houses)
   let house 0
@@ -75,15 +85,6 @@ to houses-setup
       set house (house + 1)
     ]
   ]
-
-
-
-
-
-
-
-
-
 end
 
 to check-building-placement
@@ -183,6 +184,22 @@ to recolor-patches
   ]
 end
 
+to update-globals
+  set eps 1e-10
+  set avg-popularity mean [popularity] of patches
+  set stdev-popularity standard-deviation [popularity] of patches
+  set pathness count patches with [pcolor = gray]
+  ; Shannon entropy formula: -Σ p_i * log(p_i) (proporitions)
+  set non-pathness count patches with [pcolor = green]
+  let total-patches (non-pathness + pathness)
+  let pathness-p pathness / total-patches
+  let non-pathness-p non-pathness / total-patches
+  set entropy (- (
+    (pathness-p * ln (pathness-p + eps)) +
+    (non-pathness-p * ln (non-pathness-p + eps))
+  ))
+end
+
 
 ; Copyright 2015 Uri Wilensky.
 ; See Info tab for full copyright and license.
@@ -216,9 +233,9 @@ ticks
 
 BUTTON
 35
+135
 110
-110
-143
+168
 NIL
 setup
 NIL
@@ -233,9 +250,9 @@ NIL
 
 BUTTON
 35
-150
+175
 110
-183
+208
 NIL
 go
 T
@@ -250,14 +267,14 @@ NIL
 
 SLIDER
 30
-350
+405
 240
-383
+438
 minimum-route-popularity
 minimum-route-popularity
 0
 100
-80.0
+50.0
 1
 1
 NIL
@@ -265,14 +282,14 @@ HORIZONTAL
 
 SLIDER
 30
-390
+445
 240
-423
+478
 walker-count
 walker-count
 0
 1000
-1000.0
+154.0
 1
 1
 NIL
@@ -280,9 +297,9 @@ HORIZONTAL
 
 SLIDER
 30
-430
+485
 240
-463
+518
 walker-vision-dist
 walker-vision-dist
 0
@@ -295,14 +312,14 @@ HORIZONTAL
 
 SLIDER
 30
-270
+325
 240
-303
+358
 popularity-decay-rate
 popularity-decay-rate
 0
 100
-92.0
+18.0
 1
 1
 %
@@ -310,14 +327,14 @@ HORIZONTAL
 
 SLIDER
 30
-310
+365
 240
-343
+398
 popularity-per-step
 popularity-per-step
 0
 100
-20.0
+73.0
 1
 1
 NIL
@@ -325,35 +342,35 @@ HORIZONTAL
 
 SWITCH
 30
-470
+525
 240
-503
+558
 show-popularity?
 show-popularity?
-0
+1
 1
 -1000
 
 TEXTBOX
 35
-220
-220
-260
-Once GO is running, click on\nthe view to place buildings.
+225
+250
+300
+Once GO is running, click on\nthe view to place buildings. Or actually use those wicked sliders up there instead.
 12
 0.0
 1
 
 SLIDER
 35
-20
-207
-53
+15
+240
+48
 houses-to-setup
 houses-to-setup
 1
 12
-6.0
+8.0
 1
 1
 NIL
@@ -361,9 +378,9 @@ HORIZONTAL
 
 BUTTON
 115
-110
-262
-143
+135
+240
+168
 NIL
 setup-with-houses
 NIL
@@ -378,18 +395,88 @@ NIL
 
 SLIDER
 35
-65
-227
-98
+95
+240
+128
 weirdness
 weirdness
 0
 100
-54.0
+0.0
 1
 1
 weridotrons
 HORIZONTAL
+
+SLIDER
+35
+55
+240
+88
+unit-circle-radius
+unit-circle-radius
+1
+100
+37.0
+1
+1
+NIL
+HORIZONTAL
+
+PLOT
+905
+185
+1305
+370
+popularity
+ticks
+avg / stdev
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"stdev popularity" 1.0 0 -5987164 true "" "plot stdev-popularity"
+"avg popularity" 1.0 0 -13210332 true "" "plot avg-popularity"
+
+PLOT
+905
+15
+1305
+165
+pathness
+NIL
+pathness
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -14454117 true "" "plot pathness"
+
+PLOT
+905
+390
+1305
+565
+entropy
+NIL
+NIL
+0.0
+10.0
+-2.0
+2.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot entropy"
 
 @#$#@#$#@
 ## WHAT IS IT?
