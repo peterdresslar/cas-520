@@ -370,7 +370,7 @@ houses-to-setup
 houses-to-setup
 1
 12
-8.0
+7.0
 1
 1
 NIL
@@ -417,7 +417,7 @@ unit-circle-radius
 unit-circle-radius
 1
 100
-37.0
+42.0
 1
 1
 NIL
@@ -425,9 +425,9 @@ HORIZONTAL
 
 PLOT
 905
-185
+175
 1305
-370
+330
 popularity
 ticks
 avg / stdev
@@ -462,9 +462,9 @@ PENS
 
 PLOT
 905
-390
+340
 1305
-565
+490
 entropy
 NIL
 NIL
