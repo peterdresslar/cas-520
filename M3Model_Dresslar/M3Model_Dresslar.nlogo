@@ -3,6 +3,8 @@ breed [ buildings building ]
 breed [ walkers walker ]
 walkers-own [ goal ]
 
+buildings-own [ house-number ]
+
 patches-own [  ;; one-lining these is annoying, sorry.
   popularity
   on-line?
@@ -17,7 +19,7 @@ globals [
   non-pathness
   curvilinearity
   entropy
-  houses-built   ;; sometimes known as destinations
+  houses-built   ;; i just realized these are actually called buildings, but pictures matter
   lines
   eps
 ]
@@ -130,6 +132,7 @@ to toggle-building
     sprout-buildings 1 [
       set color red
       set size 4
+      set house-number houses-built + 1  ;; since we technically donʻt have a sprout-buildings callback.
     ]
     set houses-built (houses-built + 1)
     add-line houses-built
@@ -193,11 +196,6 @@ to-report best-way-to [ destination ]
 
 end
 
-to set-patches-on-lines
-
-
-end
-
 to recolor-patches
   ifelse show-popularity? [
     let max-value (minimum-route-popularity * 3)
@@ -210,6 +208,26 @@ to recolor-patches
     ]
   ]
 end
+
+
+to add-line [this-house-num]
+
+  ; we will assume, and this is more or less by the grace of the netlogo gods, that all prior houses are on the line network
+  ; speaking of by the grace of... letʻs just get this program fault out of the way
+  (ifelse
+    this-house-num = 0 [
+      output-print("Error, illegal house number")
+      stop
+    ]
+    this-house-num = 1 [
+      stop
+    ]
+    ; elsecommands
+
+  ; with that out of the way, we need to take this house number
+  ; get this house xcor ycor
+  ; for each house
+
 
 to update-globals
   set eps 1e-10
