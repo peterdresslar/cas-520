@@ -17,8 +17,14 @@ globals [
   mouse-clicked?
   avg-popularity
   stdev-popularity
+  dt-stdev-popularity
+  d2t-stdev-popularity
   pathness
+  dt-pathness
+  d2t-pathness
   runnelness
+  dt-runnelness
+  d2t-runnelness
   grassness
   curvilinearity
   entropy
@@ -345,6 +351,8 @@ end
 
 to-report check-curvilinearity
   ;; avoid zeroness
+  ;; no references for this, I made it up. It doesnʻt work as well as I would like
+
   if pathness = 0 or count patches with [ on-line? ] = 0 [ report 0 ]
 
   let out-of-bounds 5 ;; if a path is farther than this from some line, it is probably not part of a curve, but rather just out "in the wild"
@@ -471,7 +479,7 @@ to add-line-to-patches [line-data]
     ]
   ]
 
-  output-print(word "patches updated: number of patches with on-line? true is now: " count patches with [on-line?] " out of " count patches "." )
+  ;; output-print(word "patches updated: number of patches with on-line? true is now: " count patches with [on-line?] " out of " count patches "." )
 end
 
 to update-globals
@@ -484,7 +492,8 @@ to update-globals
   let total-patches (grassness + pathness + runnelness)
   let pathness-p pathness / total-patches
   let grassness-p grassness / total-patches
-    ; shannon entropy: -Σ p_i * log(p_i) (proporitions)  PATH ONLY!
+    ;; shannon entropy: -Σ p_i * log(p_i) (proporitions)  PATH ONLY!
+    ;; https://stackoverflow.com/a/50313657
   set entropy (- (
     (pathness-p * ln (pathness-p + eps)) +
     (grassness-p * ln (grassness-p + eps))
@@ -495,6 +504,111 @@ to update-globals
     [ set curvilinearity 0 ]
 
 
+end
+
+;;;;;;;;;; Homework stuff ;;;;;;;;;;
+
+
+to step-0-q0
+  setup
+  set popularity-decay-rate 4
+  set popularity-per-step 20
+  set minimum-route-popularity 80
+  set walker-count 250
+  set walker-vision-dist 10
+
+  set houses-to-setup 0
+  set house-spacing 0
+  set weirdness 0
+  set runnelator 0
+  set runnels? false
+  set show-popularit false
+end
+
+to step-1-q1-hi
+  setup
+  set popularity-decay-rate 4
+  set walker-count 250
+  set runnels? false
+end
+
+to step-1-q2-hi
+  setup-with-houses
+  set houses-to-setup 3
+  set walker-count 250
+  set runnels? true
+  set runnelator 50
+
+end
+
+to step-1-q3-hi
+  setup-with-houses
+  set houses-to-setup 6
+  set walker-count 250
+  set runnels? false
+
+end
+
+to step-1-q4-hi
+  setup-with-houses
+  set houses-to-setup 6
+  set walker-count 250
+  set runnels? true
+  set runnelator 50
+
+end
+
+to step-1-q5-hi
+  setup-with-houses
+  set houses-to-setup 10
+  set walker-count 250
+  set runnels? true
+  set runnelator 50
+
+end
+
+to run-with-report
+  let max-ticks 2500
+
+  print-run-start [ max-ticks ]
+  reset-ticks
+  repeat max-ticks [
+    go
+    if ticks > max-ticks [ stop ]
+  ]
+
+  print-run-stats
+
+
+end
+
+to print-run-start [ max-ticks ]
+  output-print "=== SIMULATION PARAMETERS ==="
+  output-print (word "Run for ticks: " max-ticks)
+  output-print (word "Houses to setup: " houses-to-setup)
+  output-print (word "House spacing: " house-spacing)
+  output-print (word "Weirdness: " weirdness)
+  output-print (word "Runnels enabled: " runnels?)
+  output-print (word "Runnelator: " runnelator)
+  output-print (word "Popularity decay rate: " popularity-decay-rate "%")
+  output-print (word "Popularity per step: " popularity-per-step)
+  output-print (word "Minimum route popularity: " minimum-route-popularity)
+  output-print (word "Walker count: " walker-count)
+  output-print (word "Walker vision distance: " walker-vision-dist)
+  output-print (word "Runnel durability: " runnel-durability)
+  output-print "======================="
+end
+
+to print-run-stats
+  output-print "=== SIMULATION STATISTICS ==="
+  output-print (word "Ticks completed: " ticks)
+  output-print (word "Average popularity: " precision avg-popularity 3)
+  output-print (word "Pathness: " pathness)
+  output-print (word "Runnelness: " runnelness)
+  output-print (word "Grassness: " grassness)
+  output-print (word "Entropy: " precision entropy 3)
+  output-print (word "Curvilinearity: " precision curvilinearity 3)
+  output-print "======================="
 end
 
 
@@ -529,10 +643,10 @@ ticks
 25.0
 
 BUTTON
-35
-135
-110
-168
+30
+350
+105
+383
 NIL
 setup
 NIL
@@ -546,10 +660,10 @@ NIL
 1
 
 BUTTON
-35
-175
-110
-208
+30
+300
+240
+345
 NIL
 go
 T
@@ -564,9 +678,9 @@ NIL
 
 SLIDER
 30
-405
+470
 240
-438
+503
 minimum-route-popularity
 minimum-route-popularity
 0
@@ -586,7 +700,7 @@ walker-count
 walker-count
 0
 1000
-333.0
+250.0
 1
 1
 NIL
@@ -601,7 +715,7 @@ walker-vision-dist
 walker-vision-dist
 0
 30
-10.0
+0.0
 1
 1
 NIL
@@ -609,14 +723,14 @@ HORIZONTAL
 
 SLIDER
 30
-325
+390
 240
-358
+423
 popularity-decay-rate
 popularity-decay-rate
 0
 100
-10.0
+4.0
 1
 1
 %
@@ -624,14 +738,14 @@ HORIZONTAL
 
 SLIDER
 30
-365
+430
 240
-398
+463
 popularity-per-step
 popularity-per-step
 0
 100
-80.0
+20.0
 1
 1
 NIL
@@ -640,23 +754,13 @@ HORIZONTAL
 SWITCH
 30
 590
-120
+240
 623
 show-popularity?
 show-popularity?
 1
 1
 -1000
-
-TEXTBOX
-35
-225
-250
-300
-Once GO is running, click on\nthe view to place buildings. Or actually use those wicked sliders up there instead.
-12
-0.0
-1
 
 SLIDER
 35
@@ -667,17 +771,17 @@ houses-to-setup
 houses-to-setup
 1
 12
-7.0
+3.0
 1
 1
 NIL
 HORIZONTAL
 
 BUTTON
-115
-135
-240
-168
+75
+210
+200
+243
 NIL
 setup-with-houses
 NIL
@@ -714,7 +818,7 @@ house-spacing
 house-spacing
 1
 100
-42.0
+29.0
 1
 1
 NIL
@@ -795,10 +899,10 @@ PENS
 "curvilinearity" 1.0 0 -2674135 true "" "plot curvilinearity"
 
 SLIDER
-30
-445
+35
+135
 240
-478
+168
 runnelator
 runnelator
 0
@@ -810,15 +914,229 @@ NIL
 HORIZONTAL
 
 SWITCH
-130
-590
+35
+175
 240
-623
+208
 runnels?
 runnels?
-0
+1
 1
 -1000
+
+BUTTON
+140
+660
+252
+693
+NIL
+step-1-q1-hi
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+260
+660
+372
+693
+NIL
+step-1-q2-hi
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+380
+660
+492
+693
+NIL
+step-1-q3-hi
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+500
+660
+612
+693
+NIL
+step-1-q4-hi
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+620
+660
+732
+693
+NIL
+step-1-q5-hi
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+TEXTBOX
+45
+250
+240
+316
+^^^^^^^^^^^^^^^^^^^^^^^^^^\n                   NEW STUFF\n  runnelator makes more runnels
+11
+15.0
+1
+
+BUTTON
+140
+700
+252
+733
+NIL
+step-1-q1-lo
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+260
+700
+372
+733
+NIL
+step-1-q2-lo
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+380
+700
+492
+733
+NIL
+step-1-q3-lo
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+500
+700
+612
+733
+NIL
+step-1-q4-lo
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+620
+700
+732
+733
+NIL
+step-1-q5-lo
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+755
+680
+887
+713
+NIL
+run-with-report
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+40
+680
+132
+713
+NIL
+step-0-q0
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
