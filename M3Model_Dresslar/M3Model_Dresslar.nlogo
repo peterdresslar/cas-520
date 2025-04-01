@@ -160,7 +160,10 @@ to decay-popularity
   ask patches with [ not any? walkers-here ] [
     set popularity popularity * (100 - popularity-decay-rate) / 100
     ; when popularity is below 1, the patch becomes (or stays) grass
-    if popularity < 1 [ set pcolor green ]
+    if popularity < 1 and pcolor = gray [
+      set transition-tick ticks
+      set pcolor green
+    ]
   ]
 end
 
@@ -168,20 +171,28 @@ to become-more-popular
   set popularity popularity + popularity-per-step
   ; if the increase in popularity takes us above the threshold, become a route
   if popularity >= minimum-route-popularity [
+    if pcolor != gray [ ;; newly path
+        set transition-tick ticks ;; date of transition
+    ]
     set pcolor gray  ;; path
-    set transition-tick ticks ;; date of transition
+  ]
+    ;; walking through a patch can trigger a runnel as part of increased popularity
+  if pcolor = gray [
+    check-for-runnel
   ]
 end
 
 to check-for-runnel
   ;; if the increase takes us over the runnelator, become a runnel
   ;; this fires even if the patch just became a path
-  if ((ticks - transition-tick > (300 - runnelator)))  [
-    let runnel-roll random 100
-    output-print(word "rolled " runnel-roll " vs. " (100 - runnelator) " popularity here "popularity )
+  if (6 > 5)  [
+    let runnel-roll (random 100 * popularity / 100)
+    output-print(word "rolled " runnel-roll " vs. " (100 - runnelator) " popularity here " popularity )
     if runnel-roll > 100 - runnelator [
+      if pcolor != blue [ ;; new runnel
+        set transition-tick ticks  ;; set date
+      ]
       set pcolor blue  ;; runnel
-      set transition-tick ticks ;; date of transition
     ]
   ]
 end
@@ -190,8 +201,10 @@ to check-degrade-runnels-to-grass
   ask patches with [ pcolor = blue ] [
     if (ticks - transition-tick) > ticks  [
       output-print(word "transitioning to grass" ticks " " runnel-durability " " transition-tick)
+      if pcolor != green [  ;; should not happen
+         set transition-tick ticks
+      ]
       set pcolor green
-      set transition-tick ticks
     ]
   ]
 end
@@ -211,12 +224,9 @@ to move-walkers
 end
 
 to walk-towards-goal
-  if pcolor != gray and pcolor != gray [
+  if pcolor != gray and pcolor != blue [
     ; boost the popularity of the patch we're on
     ask patch-here [ become-more-popular ]
-    if runnels? = true [
-      ask patch-here [ check-for-runnel ]
-    ]
   ]
   face best-way-to goal
   fd 1
@@ -289,10 +299,12 @@ to recolor-patches
   ifelse show-popularity? [
     let max-value (minimum-route-popularity * 3)
     ask patches with [ pcolor != gray and pcolor != blue ] [
+       if pcolor != green [ set transition-tick ticks ]
       set pcolor scale-color green popularity (- max-value) max-value
     ]
   ] [
     ask patches with [ pcolor != gray and pcolor != blue ] [
+      if pcolor != green [ set transition-tick ticks ]
       set pcolor green
     ]
   ]
@@ -470,7 +482,7 @@ minimum-route-popularity
 minimum-route-popularity
 0
 100
-45.0
+80.0
 1
 1
 NIL
@@ -515,7 +527,7 @@ popularity-decay-rate
 popularity-decay-rate
 0
 100
-59.0
+11.0
 1
 1
 %
@@ -530,7 +542,7 @@ popularity-per-step
 popularity-per-step
 0
 100
-20.0
+50.0
 1
 1
 NIL
@@ -702,7 +714,7 @@ runnelator
 runnelator
 0
 100
-80.0
+20.0
 1
 1
 NIL
@@ -715,7 +727,7 @@ SWITCH
 623
 runnels?
 runnels?
-1
+0
 1
 -1000
 
