@@ -48,7 +48,7 @@ to setup
     set color yellow
     set size 2
   ]
-  set runnel-durability 100
+  set runnel-durability 250
   reset-ticks
   update-globals
 end
@@ -73,7 +73,7 @@ to setup-with-houses
     set color yellow
     set size 2
   ]
-  set runnel-durability 100
+  set runnel-durability 250
   reset-ticks
   update-globals
 end
@@ -182,7 +182,7 @@ to check-for-runnel
   ;; if the increase takes us over the runnelator, become a runnel
 
   ;; check if we are maxed out on runnels
-  if (count patches with [ pcolor = blue ] > 250) [
+  if (count patches with [ pcolor = blue ] > 500) [
     stop
   ]
 
@@ -208,8 +208,8 @@ end
 
 to check-degrade-runnels-to-grass
   ask patches with [ pcolor = blue ] [
-    if (ticks - transition-tick) > ticks  [
-      output-print(word "transitioning to grass" ticks " " runnel-durability " " transition-tick)
+    if (ticks - transition-tick) > runnel-durability  [
+      ; output-print(word "transitioning to grass" ticks " " runnel-durability " " transition-tick)
       if pcolor != green [  ;; should not happen
          set transition-tick ticks
       ]
@@ -256,7 +256,7 @@ to walk-towards-goal
     ] [
       ;; bad news, we are at the bottom of the ifelse stack
       rt random 45
-      output-print("a turtle is runneled")
+      ; output-print("a turtle is runneled")
       stop  ;; Don't execute the fd 1 below
     ]
   ]
@@ -350,7 +350,7 @@ to-report check-curvilinearity
   let out-of-bounds 5 ;; if a path is farther than this from some line, it is probably not part of a curve, but rather just out "in the wild"
 
   let path-patches patches with [ pcolor = gray ]
-  let sample-size min list pathness 60  ;; too high a sample-size causes a big slow-down
+  let sample-size min list pathness 90  ;; too high a sample-size causes a big slow-down
   let paths-sample n-of sample-size patches with [ pcolor = gray ]
 
   ;; have each patch that is path (gray) calculate its distance to the nearest line patch
@@ -504,11 +504,11 @@ end
 GRAPHICS-WINDOW
 275
 15
-788
-529
+887
+628
 -1
 -1
-5.0
+4.0
 1
 10
 1
@@ -518,15 +518,15 @@ GRAPHICS-WINDOW
 1
 1
 1
--50
-50
--50
-50
+-75
+75
+-75
+75
 1
 1
 1
 ticks
-30.0
+25.0
 
 BUTTON
 35
@@ -586,7 +586,7 @@ walker-count
 walker-count
 0
 1000
-251.0
+333.0
 1
 1
 NIL
@@ -616,7 +616,7 @@ popularity-decay-rate
 popularity-decay-rate
 0
 100
-20.0
+10.0
 1
 1
 %
@@ -667,7 +667,7 @@ houses-to-setup
 houses-to-setup
 1
 12
-12.0
+7.0
 1
 1
 NIL
@@ -699,7 +699,7 @@ weirdness
 weirdness
 0
 100
-9.0
+0.0
 1
 1
 weridotrons
@@ -714,7 +714,7 @@ house-spacing
 house-spacing
 1
 100
-25.0
+42.0
 1
 1
 NIL
@@ -768,8 +768,8 @@ NIL
 NIL
 0.0
 10.0
--2.0
-2.0
+-1.0
+1.0
 true
 false
 "" ""
@@ -803,7 +803,7 @@ runnelator
 runnelator
 0
 100
-80.0
+50.0
 1
 1
 NIL
