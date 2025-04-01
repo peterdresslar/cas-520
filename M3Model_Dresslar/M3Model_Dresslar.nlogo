@@ -113,8 +113,8 @@ to houses-setup
       ;; set this-radians (house-i * radians-per-house)
       set this-degrees (house-i * degrees-per-house)  ;; welp this works
       let random-posneg (1 - (random 2 * 1))  ;; heh.
-      set this-xcor (house-spacing * (cos this-degrees)) + (random-posneg * ((weirdness * (13 - houses-to-setup)) / house-spacing))  ;; parens are free baby
-      set this-ycor (house-spacing * (sin this-degrees)) + (random-posneg * ((weirdness * (13 - houses-to-setup)) / house-spacing))
+      set this-xcor (house-spacing * (cos this-degrees)) + (random-posneg * ((weirdness * (13 - (houses-to-setup / 2))) / house-spacing))  ;; parens are free baby
+      set this-ycor (house-spacing * (sin this-degrees)) + (random-posneg * ((weirdness * (13 - (houses-to-setup / 2))) / house-spacing))
       output-print (word this-degrees " " this-xcor " " this-ycor)
       ask patch this-xcor this-ycor [toggle-house]
       set house-i (house-i + 1)
@@ -182,16 +182,21 @@ to check-for-runnel
   ;; if the increase takes us over the runnelator, become a runnel
 
   ;; check if we are maxed out on runnels
-  if (count patches with [ pcolor = blue ] > 100) [
+  if (count patches with [ pcolor = blue ] > 250) [
     stop
   ]
 
-  ;; this fires even if the patch just became a path
-  if (ticks - transition-tick > 50)  [
+  ;; donʻt build moats (well hopefully)
+  if any? houses in-radius 4 [
+    stop
+  ]
+
+  ;; check established paths
+  if (ticks - transition-tick > 25)  [
     let roll random(100) + 1
 
     let runnel-roll (roll * (popularity * popularity) / 10)
-    output-print(word roll "rolled " runnel-roll " vs. " (100 - runnelator) " popularity here " popularity )
+    ;; output-print(word roll "rolled " runnel-roll " vs. " (100 - runnelator) " popularity here " popularity )
     if runnel-roll > 100 - runnelator [
       if pcolor != blue [ ;; new runnel
         set transition-tick ticks  ;; set date
@@ -237,28 +242,105 @@ to walk-towards-goal
   if pcolor = gray and runnels?  [
     ask patch-here [ check-for-runnel ]
   ]
+
   face best-way-to goal
+
+  ;; okay, walking. it just got treacherous
+  if [pcolor] of patch-ahead 1 = blue [  ;; trouble. best-way-to-goal has let us down
+    ;; If there's a runnel directly ahead, look for another direction
+    let potential-moves (patches at-points [[0 1] [1 1] [1 0] [1 -1] [0 -1] [-1 -1] [-1 0] [-1 1]])  ;; feels like game of life
+    let safe-moves potential-moves with [pcolor != blue] ;; simular to our pathfinding from before
+
+    ifelse any? safe-moves [
+      face min-one-of safe-moves [distance [goal] of myself]
+    ] [
+      ;; bad news, we are at the bottom of the ifelse stack
+      rt random 45
+      output-print("a turtle is runneled")
+      stop  ;; Don't execute the fd 1 below
+    ]
+  ]
+
+  ;;; hey hopefully we found land
   fd 1
 end
 
 to-report best-way-to [ destination ]
+  ; Only use the runnel-aware pathfinding if there are runnels in sight
+  ; This makes the model much more efficient
+  ifelse any? patches in-radius walker-vision-dist with [pcolor = blue] [
+    report best-way-avoiding-runnels destination
+  ] [
+    ; Original pathfinding logic when no runnels are visible
+    ; of all the visible route patches, select the ones
+    ; that would take me closer to my destination
+    let visible-patches patches in-radius walker-vision-dist
+    let visible-routes visible-patches with [ pcolor = gray ]
+    let routes-that-take-me-closer visible-routes with [
+      distance destination < [ distance destination - 1 ] of myself
+    ]
 
-  ; of all the visible route patches, select the ones
-  ; that would take me closer to my destination
+    ifelse any? routes-that-take-me-closer [
+      ; from those route patches, choose the one that is the closest to me
+      report min-one-of routes-that-take-me-closer [ distance self ]
+    ] [
+      ; if there are no nearby routes to my destination
+      report destination
+    ]
+  ]
+end
+
+to-report best-way-avoiding-runnels [ destination ]
+  ; This procedure is only called when runnels are visible
   let visible-patches patches in-radius walker-vision-dist
   let visible-routes visible-patches with [ pcolor = gray ]
+
+  ; Filter out routes that have runnels nearby in the direction of travel
+  let safe-routes visible-routes with [
+    not any? (patches in-radius 1) with [pcolor = blue]
+  ]
+
+  ; First preference: use safe routes that take me closer to destination
+  let safe-routes-that-take-me-closer safe-routes with [
+    distance destination < [ distance destination - 1 ] of myself
+  ]
+
+  ; Second preference: use any routes that take me closer to destination
   let routes-that-take-me-closer visible-routes with [
     distance destination < [ distance destination - 1 ] of myself
   ]
 
-  ifelse any? routes-that-take-me-closer [
-    ; from those route patches, choose the one that is the closest to me
-    report min-one-of routes-that-take-me-closer [ distance self ]
-  ] [
-    ; if there are no nearby routes to my destination
-    report destination
-  ]
+  ; Choose the best path based on our preferences
+  ifelse any? safe-routes-that-take-me-closer [
+    ; Best case: we have safe routes that take us closer
+    report min-one-of safe-routes-that-take-me-closer [ distance self ]
+  ][
+    ifelse any? routes-that-take-me-closer [
+      ; Second best: routes that take us closer but might have runnels nearby
+      report min-one-of routes-that-take-me-closer [ distance self ]
+    ][
+      ; If there are no routes to our destination, head directly there
+      ; but check if there are runnels directly in our path
+      let direct-path patches in-cone (distance destination) 30 with [pcolor = blue]
 
+      ifelse any? direct-path [
+        ; Find a path around the runnels
+        let potential-paths visible-patches with [
+          pcolor != blue and not any? neighbors with [pcolor = blue]
+        ]
+
+        ifelse any? potential-paths [
+          report min-one-of potential-paths [
+            distance [destination] of myself
+          ]
+        ][
+          report destination ; If completely blocked, just head to destination
+        ]
+      ][
+        report destination ; No runnels in our path
+      ]
+    ]
+  ]
 end
 
 to-report check-curvilinearity
@@ -422,11 +504,11 @@ end
 GRAPHICS-WINDOW
 275
 15
-886
-627
+788
+529
 -1
 -1
-3.0
+5.0
 1
 10
 1
@@ -436,10 +518,10 @@ GRAPHICS-WINDOW
 1
 1
 1
--100
-100
--100
-100
+-50
+50
+-50
+50
 1
 1
 1
@@ -504,7 +586,7 @@ walker-count
 walker-count
 0
 1000
-250.0
+251.0
 1
 1
 NIL
@@ -534,7 +616,7 @@ popularity-decay-rate
 popularity-decay-rate
 0
 100
-11.0
+20.0
 1
 1
 %
@@ -549,7 +631,7 @@ popularity-per-step
 popularity-per-step
 0
 100
-50.0
+80.0
 1
 1
 NIL
@@ -585,7 +667,7 @@ houses-to-setup
 houses-to-setup
 1
 12
-9.0
+12.0
 1
 1
 NIL
@@ -617,7 +699,7 @@ weirdness
 weirdness
 0
 100
-100.0
+9.0
 1
 1
 weridotrons
@@ -632,7 +714,7 @@ house-spacing
 house-spacing
 1
 100
-42.0
+25.0
 1
 1
 NIL
@@ -670,11 +752,11 @@ pathness
 0.0
 10.0
 true
-false
+true
 "" ""
 PENS
 "pathness" 1.0 0 -9276814 true "" "plot pathness"
-"pen-1" 1.0 0 -13791810 true "" "plot runnelness"
+"runnelness" 1.0 0 -13791810 true "" "plot runnelness"
 
 PLOT
 905
@@ -728,9 +810,9 @@ NIL
 HORIZONTAL
 
 SWITCH
-140
+130
 590
-247
+240
 623
 runnels?
 runnels?
