@@ -49,8 +49,8 @@ to setup
     set size 2
   ]
   set runnel-durability 100
-  update-globals
   reset-ticks
+  update-globals
 end
 
 to setup-with-houses
@@ -74,8 +74,8 @@ to setup-with-houses
     set size 2
   ]
   set runnel-durability 100
-  update-globals
   reset-ticks
+  update-globals
 end
 
 
@@ -176,9 +176,9 @@ end
 to check-for-runnel
   ;; if the increase takes us over the runnelator, become a runnel
   ;; this fires even if the patch just became a path
-  if ((ticks - transition-tick > (100 - runnelator)))  [
+  if ((ticks - transition-tick > (300 - runnelator)))  [
     let runnel-roll random 100
-    output-print(word "rolled " runnel-roll " vs. " (100 - runnelator))
+    output-print(word "rolled " runnel-roll " vs. " (100 - runnelator) " popularity here "popularity )
     if runnel-roll > 100 - runnelator [
       set pcolor blue  ;; runnel
       set transition-tick ticks ;; date of transition
@@ -188,7 +188,8 @@ end
 
 to check-degrade-runnels-to-grass
   ask patches with [ pcolor = blue ] [
-    if (ticks - runnel-durability) > transition-tick  [
+    if (ticks - transition-tick) > ticks  [
+      output-print(word "transitioning to grass" ticks " " runnel-durability " " transition-tick)
       set pcolor green
       set transition-tick ticks
     ]
@@ -210,10 +211,12 @@ to move-walkers
 end
 
 to walk-towards-goal
-  if pcolor != gray [
+  if pcolor != gray and pcolor != gray [
     ; boost the popularity of the patch we're on
     ask patch-here [ become-more-popular ]
-    ask patch-here [ check-for-runnel ]
+    if runnels? = true [
+      ask patch-here [ check-for-runnel ]
+    ]
   ]
   face best-way-to goal
   fd 1
@@ -265,7 +268,6 @@ to-report check-curvilinearity
     ]
   ]
 
-
   ; because lines are far more dense in complex shapes (more houses)
   ; we scale our curvilinearity with a factor of num-lines
   let curve-scaling-factor 1
@@ -273,7 +275,6 @@ to-report check-curvilinearity
   if num-lines > 1 [
     set curve-scaling-factor sqrt num-lines
   ]
-
 
   ;; calculate an average over pathness. we may need to update for runnelation
 
@@ -387,7 +388,12 @@ to update-globals
     (pathness-p * ln (pathness-p + eps)) +
     (grassness-p * ln (grassness-p + eps))
   ))
-  set curvilinearity check-curvilinearity  ;;; uh that was a bit of a chore
+
+  ifelse ticks > 200
+    [ set curvilinearity check-curvilinearity    ]
+    [ set curvilinearity 0 ]
+
+
 end
 
 
@@ -464,7 +470,7 @@ minimum-route-popularity
 minimum-route-popularity
 0
 100
-80.0
+45.0
 1
 1
 NIL
@@ -509,7 +515,7 @@ popularity-decay-rate
 popularity-decay-rate
 0
 100
-4.0
+59.0
 1
 1
 %
@@ -560,7 +566,7 @@ houses-to-setup
 houses-to-setup
 1
 12
-7.0
+9.0
 1
 1
 NIL
@@ -592,7 +598,7 @@ weirdness
 weirdness
 0
 100
-0.0
+100.0
 1
 1
 weridotrons
@@ -624,7 +630,7 @@ avg / stdev
 0.0
 10.0
 0.0
-10.0
+2.0
 true
 true
 "" ""
@@ -707,8 +713,8 @@ SWITCH
 590
 247
 623
-runnels!
-runnels!
+runnels?
+runnels?
 1
 1
 -1000
