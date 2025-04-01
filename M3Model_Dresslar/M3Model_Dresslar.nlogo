@@ -208,23 +208,24 @@ to-report check-curvilinearity
   ;; avoid zeroness
   if pathness = 0 or count patches with [ on-line? ] = 0 [ report 0 ]
 
-  let out-of-bounds 100 ;; if a path is farther than this from some line, it is probably not part of a curve, but rather just out "in the wild"
+  let out-of-bounds 5 ;; if a path is farther than this from some line, it is probably not part of a curve, but rather just out "in the wild"
 
   let path-patches patches with [ pcolor = gray ]
-  let sample-size min list pathness 100  ;; too high a sample-size causes a big slow-down
-  output-print(word "Sample size " sample-size)
+  let sample-size min list pathness 50  ;; too high a sample-size causes a big slow-down
   let paths-sample n-of sample-size patches with [ pcolor = gray ]
 
   ;; have each patch that is path (gray) calculate its distance to the nearest line patch
-  let abs-deviation 0  ;; initialize collector
+  let sq-deviation 0  ;; initialize collector
   let patches-checked 0
 
   ask paths-sample [
     ;; find the nearest patch with on-line? true
     let nearest-line-patch min-one-of patches with [ on-line? ] [ distance myself ]
     ;; only add to absolute deviation if we are within bounds
-    if distance nearest-line-patch < out-of-bounds [
-      set abs-deviation abs-deviation + distance nearest-line-patch
+    let deviation distance nearest-line-patch
+    if deviation < out-of-bounds [
+      ;; square the distance up to the OOB, closer we get to OOB we are, we are getting much curvier.
+      set sq-deviation sq-deviation + (deviation * deviation)
       set patches-checked (patches-checked + 1)
     ]
   ]
@@ -232,7 +233,7 @@ to-report check-curvilinearity
   ;; just calculate an average over pathness. we may need to update for runnelation
 
   ifelse patches-checked > 0 [   ; avoid div0
-    report abs-deviation / patches-checked
+    report  (sq-deviation / patches-checked)
   ] [
     report 0
   ]
@@ -590,7 +591,7 @@ PLOT
 15
 1305
 165
-pathness and curvilinearity
+pathness
 NIL
 pathness
 0.0
@@ -626,13 +627,13 @@ PLOT
 500
 1305
 630
-path curvilinearity
+path curvilinearity (jitter due to sampling)
 NIL
 NIL
 0.0
 10.0
 0.0
-10.0
+2.0
 true
 false
 "" ""
