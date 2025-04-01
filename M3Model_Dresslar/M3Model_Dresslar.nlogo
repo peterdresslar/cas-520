@@ -243,7 +243,7 @@ to-report check-curvilinearity
   ;; calculate an average over pathness. we may need to update for runnelation
 
   ifelse patches-checked > 0 [   ; avoid div0
-    report  (sq-deviation / patches-checked) * scaling-factor
+    report  (sq-deviation / patches-checked) * curve-scaling-factor
   ] [
     report 0
   ]
