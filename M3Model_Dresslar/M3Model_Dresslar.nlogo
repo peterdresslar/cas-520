@@ -7,6 +7,7 @@ houses-own [ house-number ]
 
 patches-own [  ;; one-lining these is annoying, sorry.
   popularity
+  transition-tick ;; date of last transition
   on-line?   ;; is on a line between houses?
   line       ;; line-name for line that patch is on
              ;; patches could be on more than one line, but here we just store the latest one.
@@ -17,13 +18,16 @@ globals [
   avg-popularity
   stdev-popularity
   pathness
-  non-pathness
+  runnelness
+  grassness
   curvilinearity
   entropy
   houses-built
   lines
   eps
   new-lines-buffer  ;;; this is very sad  :-(
+  runnel-durability
+  runnelation-factor
 ]
 
 to setup
@@ -34,6 +38,7 @@ to setup
   set-default-shape houses "house"
   ask patches [
      set pcolor green
+     set transition-tick 0
      set on-line? false
      set line ""
   ]
@@ -43,6 +48,7 @@ to setup
     set color yellow
     set size 2
   ]
+  set runnel-durability 100
   update-globals
   reset-ticks
 end
@@ -55,6 +61,7 @@ to setup-with-houses
   set-default-shape houses "house"
     ask patches [
       set pcolor green
+      set transition-tick 0
       set on-line? false
       set line ""
   ]
@@ -66,6 +73,7 @@ to setup-with-houses
     set color yellow
     set size 2
   ]
+  set runnel-durability 100
   update-globals
   reset-ticks
 end
@@ -78,6 +86,7 @@ to go
   process-new-lines-buffer  ;; but also here
   move-walkers
   decay-popularity
+  check-degrade-runnels-to-grass
   recolor-patches
   update-globals
   tick
@@ -158,7 +167,32 @@ end
 to become-more-popular
   set popularity popularity + popularity-per-step
   ; if the increase in popularity takes us above the threshold, become a route
-  if popularity >= minimum-route-popularity [ set pcolor gray ]
+  if popularity >= minimum-route-popularity [
+    set pcolor gray  ;; path
+    set transition-tick ticks ;; date of transition
+  ]
+end
+
+to check-for-runnel
+  ;; if the increase takes us over the runnelator, become a runnel
+  ;; this fires even if the patch just became a path
+  if ((ticks - transition-tick > (100 - runnelator)))  [
+    let runnel-roll random 100
+    output-print(word "rolled " runnel-roll " vs. " (100 - runnelator))
+    if runnel-roll > 100 - runnelator [
+      set pcolor blue  ;; runnel
+      set transition-tick ticks ;; date of transition
+    ]
+  ]
+end
+
+to check-degrade-runnels-to-grass
+  ask patches with [ pcolor = blue ] [
+    if (ticks - runnel-durability) > transition-tick  [
+      set pcolor green
+      set transition-tick ticks
+    ]
+  ]
 end
 
 to move-walkers
@@ -179,6 +213,7 @@ to walk-towards-goal
   if pcolor != gray [
     ; boost the popularity of the patch we're on
     ask patch-here [ become-more-popular ]
+    ask patch-here [ check-for-runnel ]
   ]
   face best-way-to goal
   fd 1
@@ -211,7 +246,7 @@ to-report check-curvilinearity
   let out-of-bounds 5 ;; if a path is farther than this from some line, it is probably not part of a curve, but rather just out "in the wild"
 
   let path-patches patches with [ pcolor = gray ]
-  let sample-size min list pathness 50  ;; too high a sample-size causes a big slow-down
+  let sample-size min list pathness 60  ;; too high a sample-size causes a big slow-down
   let paths-sample n-of sample-size patches with [ pcolor = gray ]
 
   ;; have each patch that is path (gray) calculate its distance to the nearest line patch
@@ -252,11 +287,11 @@ end
 to recolor-patches
   ifelse show-popularity? [
     let max-value (minimum-route-popularity * 3)
-    ask patches with [ pcolor != gray ] [
+    ask patches with [ pcolor != gray and pcolor != blue ] [
       set pcolor scale-color green popularity (- max-value) max-value
     ]
   ] [
-    ask patches with [ pcolor != gray ] [
+    ask patches with [ pcolor != gray and pcolor != blue ] [
       set pcolor green
     ]
   ]
@@ -342,14 +377,15 @@ to update-globals
   set avg-popularity mean [popularity] of patches
   set stdev-popularity standard-deviation [popularity] of patches
   set pathness count patches with [pcolor = gray]
-  ; Shannon entropy formula: -Σ p_i * log(p_i) (proporitions)
-  set non-pathness count patches with [pcolor = green]
-  let total-patches (non-pathness + pathness)
+  set runnelness count patches with [pcolor = blue]
+  set grassness count patches with [pcolor = green]
+  let total-patches (grassness + pathness + runnelness)
   let pathness-p pathness / total-patches
-  let non-pathness-p non-pathness / total-patches
+  let grassness-p grassness / total-patches
+    ; shannon entropy: -Σ p_i * log(p_i) (proporitions)  PATH ONLY!
   set entropy (- (
     (pathness-p * ln (pathness-p + eps)) +
-    (non-pathness-p * ln (non-pathness-p + eps))
+    (grassness-p * ln (grassness-p + eps))
   ))
   set curvilinearity check-curvilinearity  ;;; uh that was a bit of a chore
 end
@@ -436,9 +472,9 @@ HORIZONTAL
 
 SLIDER
 30
-445
+510
 240
-478
+543
 walker-count
 walker-count
 0
@@ -451,9 +487,9 @@ HORIZONTAL
 
 SLIDER
 30
-485
+550
 240
-518
+583
 walker-vision-dist
 walker-vision-dist
 0
@@ -496,9 +532,9 @@ HORIZONTAL
 
 SWITCH
 30
-525
-240
-558
+590
+120
+623
 show-popularity?
 show-popularity?
 1
@@ -524,7 +560,7 @@ houses-to-setup
 houses-to-setup
 1
 12
-9.0
+7.0
 1
 1
 NIL
@@ -571,7 +607,7 @@ house-spacing
 house-spacing
 1
 100
-48.0
+42.0
 1
 1
 NIL
@@ -601,7 +637,7 @@ PLOT
 15
 1305
 165
-pathness
+pathness and runnelness
 NIL
 pathness
 0.0
@@ -612,7 +648,8 @@ true
 false
 "" ""
 PENS
-"pathness" 1.0 0 -14454117 true "" "plot pathness"
+"pathness" 1.0 0 -9276814 true "" "plot pathness"
+"pen-1" 1.0 0 -13791810 true "" "plot runnelness"
 
 PLOT
 905
@@ -649,6 +686,32 @@ false
 "" ""
 PENS
 "curvilinearity" 1.0 0 -2674135 true "" "plot curvilinearity"
+
+SLIDER
+30
+445
+240
+478
+runnelator
+runnelator
+0
+100
+80.0
+1
+1
+NIL
+HORIZONTAL
+
+SWITCH
+140
+590
+247
+623
+runnels!
+runnels!
+1
+1
+-1000
 
 @#$#@#$#@
 ## WHAT IS IT?
