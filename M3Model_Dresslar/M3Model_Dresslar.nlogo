@@ -176,18 +176,22 @@ to become-more-popular
     ]
     set pcolor gray  ;; path
   ]
-    ;; walking through a patch can trigger a runnel as part of increased popularity
-  if pcolor = gray [
-    check-for-runnel
-  ]
 end
 
 to check-for-runnel
   ;; if the increase takes us over the runnelator, become a runnel
+
+  ;; check if we are maxed out on runnels
+  if (count patches with [ pcolor = blue ] > 100) [
+    stop
+  ]
+
   ;; this fires even if the patch just became a path
-  if (6 > 5)  [
-    let runnel-roll (random 100 * popularity / 100)
-    output-print(word "rolled " runnel-roll " vs. " (100 - runnelator) " popularity here " popularity )
+  if (ticks - transition-tick > 50)  [
+    let roll random(100) + 1
+
+    let runnel-roll (roll * (popularity * popularity) / 10)
+    output-print(word roll "rolled " runnel-roll " vs. " (100 - runnelator) " popularity here " popularity )
     if runnel-roll > 100 - runnelator [
       if pcolor != blue [ ;; new runnel
         set transition-tick ticks  ;; set date
@@ -227,6 +231,11 @@ to walk-towards-goal
   if pcolor != gray and pcolor != blue [
     ; boost the popularity of the patch we're on
     ask patch-here [ become-more-popular ]
+  ]
+
+  ;; walking through a patch can trigger a runnel as part of increased popularity
+  if pcolor = gray and runnels?  [
+    ask patch-here [ check-for-runnel ]
   ]
   face best-way-to goal
   fd 1
@@ -299,12 +308,10 @@ to recolor-patches
   ifelse show-popularity? [
     let max-value (minimum-route-popularity * 3)
     ask patches with [ pcolor != gray and pcolor != blue ] [
-       if pcolor != green [ set transition-tick ticks ]
       set pcolor scale-color green popularity (- max-value) max-value
     ]
   ] [
     ask patches with [ pcolor != gray and pcolor != blue ] [
-      if pcolor != green [ set transition-tick ticks ]
       set pcolor green
     ]
   ]
@@ -714,7 +721,7 @@ runnelator
 runnelator
 0
 100
-20.0
+80.0
 1
 1
 NIL
