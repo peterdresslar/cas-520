@@ -230,10 +230,20 @@ to-report check-curvilinearity
     ]
   ]
 
-  ;; just calculate an average over pathness. we may need to update for runnelation
+
+  ; because lines are far more dense in complex shapes (more houses)
+  ; we scale our curvilinearity with a factor of num-lines
+  let curve-scaling-factor 1
+  let num-lines length lines
+  if num-lines > 1 [
+    set curve-scaling-factor sqrt num-lines
+  ]
+
+
+  ;; calculate an average over pathness. we may need to update for runnelation
 
   ifelse patches-checked > 0 [   ; avoid div0
-    report  (sq-deviation / patches-checked)
+    report  (sq-deviation / patches-checked) * scaling-factor
   ] [
     report 0
   ]
@@ -514,7 +524,7 @@ houses-to-setup
 houses-to-setup
 1
 12
-7.0
+9.0
 1
 1
 NIL
@@ -561,7 +571,7 @@ house-spacing
 house-spacing
 1
 100
-42.0
+48.0
 1
 1
 NIL
