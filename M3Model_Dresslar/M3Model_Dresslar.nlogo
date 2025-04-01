@@ -34,9 +34,11 @@ globals [
   new-lines-buffer  ;;; this is very sad  :-(
   runnel-durability
   runnelation-factor
+  simulation-name
 ]
 
 to setup
+  set simulation-name ""
   clear-all
   set houses-built 0
   set lines []  ;; empty list
@@ -60,6 +62,7 @@ to setup
 end
 
 to setup-with-houses
+  set simulation-name ""
   clear-all
   set houses-built 0
   set lines []
@@ -483,7 +486,18 @@ to add-line-to-patches [line-data]
 end
 
 to update-globals
-  set eps 1e-10
+  set eps 1e-10   ;;; yet another epsilonish value
+  ;; set up for dts and d2ts... basically going to try and find inflection points and
+  ;; bark them out
+
+  
+
+
+
+
+
+
+
   set avg-popularity mean [popularity] of patches
   set stdev-popularity standard-deviation [popularity] of patches
   set pathness count patches with [pcolor = gray]
@@ -492,10 +506,10 @@ to update-globals
   let total-patches (grassness + pathness + runnelness)
   let pathness-p pathness / total-patches
   let grassness-p grassness / total-patches
-    ;; shannon entropy: -Σ p_i * log(p_i) (proporitions)  PATH ONLY!
+    ;; shannon entropy: -sum(p_i * log(p_i)) (proporitions)  PATH ONLY! todo update for runnelness
     ;; https://stackoverflow.com/a/50313657
   set entropy (- (
-    (pathness-p * ln (pathness-p + eps)) +
+    (pathness-p * ln (pathness-p + eps)) +  ;; log^-2
     (grassness-p * ln (grassness-p + eps))
   ))
 
@@ -511,6 +525,7 @@ end
 
 to step-0-q0
   setup
+  set simulation-name "BASE EXPERIMENT"
   set popularity-decay-rate 4
   set popularity-per-step 20
   set minimum-route-popularity 80
@@ -522,55 +537,283 @@ to step-0-q0
   set weirdness 0
   set runnelator 0
   set runnels? false
-  set show-popularit false
+  set show-popularity? false
 end
 
-to step-1-q1-hi
+to question1-hi
   setup
+  set simulation-name "Step 1, Question 1, High Param"
+  set popularity-decay-rate 96
+  set popularity-per-step 20
+  set minimum-route-popularity 80
+  set walker-count 250
+  set walker-vision-dist 10
+
+  ifelse step-3 != false [
+    set houses-to-setup 0
+    set house-spacing 0
+    set weirdness 0
+    set runnelator 0
+    set runnels? false
+    set show-popularity? false
+  ] [
+    set houses-to-setup 7
+    set house-spacing 30
+    set weirdness 20
+    set runnelator 30
+    set runnels? true
+    set show-popularity? false
+  ]
+
+end
+
+to question2-hi
+  setup
+  set simulation-name "Step 1, Question 2, High Param"
   set popularity-decay-rate 4
+  set popularity-per-step 96
+  set minimum-route-popularity 80
   set walker-count 250
+  set walker-vision-dist 10
+
+  ifelse step-3 != false [
+    set houses-to-setup 0
+    set house-spacing 0
+    set weirdness 0
+    set runnelator 0
+    set runnels? false
+    set show-popularity? false
+  ] [
+    set houses-to-setup 7
+    set house-spacing 30
+    set weirdness 20
+    set runnelator 30
+    set runnels? true
+    set show-popularity? false
+  ]
+end
+
+to question3-hi
+  setup
+  set simulation-name "Step 1, Question 3, High Param"
+  set popularity-decay-rate 4
+  set popularity-per-step 20
+  set minimum-route-popularity 96
+  set walker-count 250
+  set walker-vision-dist 10
+
+  ifelse step-3 != false [
+    set houses-to-setup 0
+    set house-spacing 0
+    set weirdness 0
+    set runnelator 0
+    set runnels? false
+    set show-popularity? false
+  ] [
+    set houses-to-setup 7
+    set house-spacing 30
+    set weirdness 20
+    set runnelator 30
+    set runnels? true
+    set show-popularity? false
+  ]
+end
+
+to question4-hi
+  setup
+  set simulation-name "Step 1, Question 4, High Param"
+  set popularity-decay-rate 4
+  set popularity-per-step 20
+  set minimum-route-popularity 80
+  set walker-count 960
+  set walker-vision-dist 10
+
+  ifelse step-3 != false [
+    set houses-to-setup 0
+    set house-spacing 0
+    set weirdness 0
+    set runnelator 0
+    set runnels? false
+    set show-popularity? false
+  ] [
+    set houses-to-setup 7
+    set house-spacing 30
+    set weirdness 20
+    set runnelator 30
+    set runnels? true
+end
+
+to question5-hi
+  setup
+  set simulation-name "Step 1, Question 5, High Param"
+  set popularity-decay-rate 4
+  set popularity-per-step 20
+  set minimum-route-popularity 80
+  set walker-count 250
+  set walker-vision-dist 96
+
+  ifelse step-3 != false [
+    set houses-to-setup 0
+    set house-spacing 0
+    set weirdness 0
+    set runnelator 0
+    set runnels? false
+    set show-popularity? false
+  ] [
+    set houses-to-setup 7
+    set house-spacing 30
+    set weirdness 20
+    set runnelator 30
+    set runnels? true
+  ]
+end
+
+to question1-lo
+  setup
+  set simulation-name "Step 1, Question 1, Low Param"
+  set popularity-decay-rate 0
+  set popularity-per-step 20
+  set minimum-route-popularity 80
+  set walker-count 250
+  set walker-vision-dist 10
+
+  ifelse step-3 != false [
+    set houses-to-setup 0
+    set house-spacing 0
+    set weirdness 0
+    set runnelator 0
+    set runnels? false
+    set show-popularity? false
+  ] [
+    set houses-to-setup 7
+    set house-spacing 30
+    set weirdness 20
+    set runnelator 30
+    set runnels? true
+  ]
+end
+
+  to question2-lo
+  setup
+  set simulation-name "Step 1, Question 2, Low Param"
+  set popularity-decay-rate 4
+  set popularity-per-step 4
+  set minimum-route-popularity 80
+  set walker-count 250
+  set walker-vision-dist 10
+
+  ifelse step-3 != false [
+    set houses-to-setup 0
+    set house-spacing 0
+    set weirdness 0
+    set runnelator 0
+    set runnels? false
+    set show-popularity? false
+  ] [
+    set houses-to-setup 7
+    set house-spacing 30
+    set weirdness 20
+    set runnelator 30
+    set runnels? true
+  ]
+end
+
+to question3-lo
+  setup
+  set simulation-name "Step 1, Question 3, Low Param"
+  set popularity-decay-rate 4
+  set popularity-per-step 20
+  set minimum-route-popularity 4
+  set walker-count 250
+  set walker-vision-dist 10
+
+  ifelse step-3 != false [
+    set houses-to-setup 0
+    set house-spacing 0
+    set weirdness 0
+    set runnelator 0
+    set runnels? false
+    set show-popularity? false
+  ] [
+    set houses-to-setup 7
+    set house-spacing 30
+    set weirdness 20
+    set runnelator 30
+    set runnels? true
+  ]
+end
+
+to question4-lo
+  setup
+  set simulation-name "Step 1, Question 4, Low Param"
+  set popularity-decay-rate 4
+  set popularity-per-step 20
+  set minimum-route-popularity 80
+  set walker-count 25
+  set walker-vision-dist 10
+
+  ifelse step-3 != false [
+    set houses-to-setup 0
+    set house-spacing 0
+    set weirdness 0
+    set runnelator 0
+    set runnels? false
+    set show-popularity? false
+  ] [
+    set houses-to-setup 7
+    set house-spacing 30
+    set weirdness 20
+    set runnelator 30
+    set runnels? true
+  ]
+end
+
+to question5-lo
+  setup
+  set simulation-name "Step 1, Question 5, Low Param"
+  set popularity-decay-rate 4
+  set popularity-per-step 20
+  set minimum-route-popularity 80
+  set walker-count 250
+  set walker-vision-dist 2
+
+  ifelse step-3 != false [
+    set houses-to-setup 0
+    set house-spacing 0
+    set weirdness 0
+    set runnelator 0
+    set runnels? false
+    set show-popularity? false
+  ] [
+    set houses-to-setup 7
+    set house-spacing 30
+    set weirdness 20
+    set runnelator 30
+    set runnels? true
+  ]
+end
+
+to step-2-q0
+  setup
+  set simulation-name "Step 2, Question 0"
+  set popularity-decay-rate 4
+  set popularity-per-step 20
+  set minimum-route-popularity 80
+  set walker-count 250
+  set walker-vision-dist 10
+
+  set houses-to-setup 2
+  set house-spacing 30
+  set weirdness 50
+  set runnelator 0
   set runnels? false
-end
-
-to step-1-q2-hi
-  setup-with-houses
-  set houses-to-setup 3
-  set walker-count 250
-  set runnels? true
-  set runnelator 50
-
-end
-
-to step-1-q3-hi
-  setup-with-houses
-  set houses-to-setup 6
-  set walker-count 250
-  set runnels? false
-
-end
-
-to step-1-q4-hi
-  setup-with-houses
-  set houses-to-setup 6
-  set walker-count 250
-  set runnels? true
-  set runnelator 50
-
-end
-
-to step-1-q5-hi
-  setup-with-houses
-  set houses-to-setup 10
-  set walker-count 250
-  set runnels? true
-  set runnelator 50
-
+  set show-popularity? false
 end
 
 to run-with-report
   let max-ticks 2500
 
-  print-run-start [ max-ticks ]
+  print-run-start max-ticks
   reset-ticks
   repeat max-ticks [
     go
@@ -584,6 +827,11 @@ end
 
 to print-run-start [ max-ticks ]
   output-print "=== SIMULATION PARAMETERS ==="
+  if step-3? [
+    output-print (word "Simulation name: Step 3, " simulation-name)
+  ] else [
+    output-print (word "Simulation name: Step 1, " simulation-name)
+  ]
   output-print (word "Run for ticks: " max-ticks)
   output-print (word "Houses to setup: " houses-to-setup)
   output-print (word "House spacing: " house-spacing)
@@ -678,9 +926,9 @@ NIL
 
 SLIDER
 30
-470
+475
 240
-503
+508
 minimum-route-popularity
 minimum-route-popularity
 0
@@ -693,9 +941,9 @@ HORIZONTAL
 
 SLIDER
 30
-510
+515
 240
-543
+548
 walker-count
 walker-count
 0
@@ -708,14 +956,14 @@ HORIZONTAL
 
 SLIDER
 30
-550
+555
 240
-583
+588
 walker-vision-dist
 walker-vision-dist
 0
 30
-0.0
+10.0
 1
 1
 NIL
@@ -723,9 +971,9 @@ HORIZONTAL
 
 SLIDER
 30
-390
+395
 240
-423
+428
 popularity-decay-rate
 popularity-decay-rate
 0
@@ -738,9 +986,9 @@ HORIZONTAL
 
 SLIDER
 30
-430
+435
 240
-463
+468
 popularity-per-step
 popularity-per-step
 0
@@ -753,9 +1001,9 @@ HORIZONTAL
 
 SWITCH
 30
-590
+595
 240
-623
+628
 show-popularity?
 show-popularity?
 1
@@ -771,7 +1019,7 @@ houses-to-setup
 houses-to-setup
 1
 12
-3.0
+0.0
 1
 1
 NIL
@@ -818,7 +1066,7 @@ house-spacing
 house-spacing
 1
 100
-29.0
+0.0
 1
 1
 NIL
@@ -907,7 +1155,7 @@ runnelator
 runnelator
 0
 100
-50.0
+0.0
 1
 1
 NIL
@@ -924,13 +1172,24 @@ runnels?
 1
 -1000
 
+SWITCH
+38
+178
+243
+211
+step-3?
+step-3?
+1
+1
+-1000
+
 BUTTON
 140
 660
 252
 693
 NIL
-step-1-q1-hi
+question1-hi
 NIL
 1
 T
@@ -947,7 +1206,7 @@ BUTTON
 372
 693
 NIL
-step-1-q2-hi
+question2-hi
 NIL
 1
 T
@@ -964,7 +1223,7 @@ BUTTON
 492
 693
 NIL
-step-1-q3-hi
+question3-hi
 NIL
 1
 T
@@ -981,7 +1240,7 @@ BUTTON
 612
 693
 NIL
-step-1-q4-hi
+question4-hi
 NIL
 1
 T
@@ -998,7 +1257,7 @@ BUTTON
 732
 693
 NIL
-step-1-q5-hi
+question5-hi
 NIL
 1
 T
@@ -1014,7 +1273,7 @@ TEXTBOX
 250
 240
 316
-^^^^^^^^^^^^^^^^^^^^^^^^^^\n                   NEW STUFF\n  runnelator makes more runnels
+^^^^^^^^^^^^^^^^^^^^^^^^^^\n                    NEW STUFF\n  runnelator makes more runnels
 11
 15.0
 1
@@ -1025,7 +1284,7 @@ BUTTON
 252
 733
 NIL
-step-1-q1-lo
+question1-lo
 NIL
 1
 T
@@ -1042,7 +1301,7 @@ BUTTON
 372
 733
 NIL
-step-1-q2-lo
+question2-lo
 NIL
 1
 T
@@ -1059,7 +1318,7 @@ BUTTON
 492
 733
 NIL
-step-1-q3-lo
+question3-lo
 NIL
 1
 T
@@ -1076,7 +1335,7 @@ BUTTON
 612
 733
 NIL
-step-1-q4-lo
+question4-lo
 NIL
 1
 T
@@ -1093,7 +1352,7 @@ BUTTON
 732
 733
 NIL
-step-1-q5-lo
+question5-lo
 NIL
 1
 T
