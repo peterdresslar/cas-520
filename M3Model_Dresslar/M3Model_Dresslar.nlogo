@@ -109,8 +109,7 @@ to houses-setup
   let houses-range (range 0 houses-to-setup)
   let degrees-per-house 360 / houses-to-setup
   ;; let radians-per-house (degrees-per-house * (pi / 180))  ;; canʻt use radians in NL without extensions, though
-  output-print(word houses-to-setup " houses to setup " degrees-per-house " degrees ")
-  output-print(houses)
+  output-print(word houses-to-setup " houses to setup at " degrees-per-house " degrees separation.")
   let house-i 0
   let this-degrees 0
   let this-xcor 0
@@ -124,7 +123,6 @@ to houses-setup
       let random-posneg (1 - (random 2 * 1))  ;; heh.
       set this-xcor (house-spacing * (cos this-degrees)) + (random-posneg * ((weirdness * (13 - (houses-to-setup / 2))) / house-spacing))  ;; parens are free baby
       set this-ycor (house-spacing * (sin this-degrees)) + (random-posneg * ((weirdness * (13 - (houses-to-setup / 2))) / house-spacing))
-      output-print (word this-degrees " " this-xcor " " this-ycor)
       ask patch this-xcor this-ycor [toggle-house]
       set house-i (house-i + 1)
     ]
@@ -490,7 +488,7 @@ to update-globals
   ;; set up for dts and d2ts... basically going to try and find inflection points and
   ;; bark them out
 
-  
+
 
 
 
@@ -549,7 +547,7 @@ to question1-hi
   set walker-count 250
   set walker-vision-dist 10
 
-  ifelse step-3 != false [
+  ifelse step-3? = false [
     set houses-to-setup 0
     set house-spacing 0
     set weirdness 0
@@ -563,6 +561,7 @@ to question1-hi
     set runnelator 30
     set runnels? true
     set show-popularity? false
+    setup-with-houses
   ]
 
 end
@@ -576,7 +575,7 @@ to question2-hi
   set walker-count 250
   set walker-vision-dist 10
 
-  ifelse step-3 != false [
+  ifelse step-3? = false [
     set houses-to-setup 0
     set house-spacing 0
     set weirdness 0
@@ -602,7 +601,7 @@ to question3-hi
   set walker-count 250
   set walker-vision-dist 10
 
-  ifelse step-3 != false [
+  ifelse step-3? = false [
     set houses-to-setup 0
     set house-spacing 0
     set weirdness 0
@@ -628,7 +627,7 @@ to question4-hi
   set walker-count 960
   set walker-vision-dist 10
 
-  ifelse step-3 != false [
+  ifelse step-3? = false [
     set houses-to-setup 0
     set house-spacing 0
     set weirdness 0
@@ -641,6 +640,7 @@ to question4-hi
     set weirdness 20
     set runnelator 30
     set runnels? true
+  ]
 end
 
 to question5-hi
@@ -652,7 +652,7 @@ to question5-hi
   set walker-count 250
   set walker-vision-dist 96
 
-  ifelse step-3 != false [
+  ifelse step-3? = false [
     set houses-to-setup 0
     set house-spacing 0
     set weirdness 0
@@ -677,7 +677,7 @@ to question1-lo
   set walker-count 250
   set walker-vision-dist 10
 
-  ifelse step-3 != false [
+  ifelse step-3? = false [
     set houses-to-setup 0
     set house-spacing 0
     set weirdness 0
@@ -702,7 +702,7 @@ end
   set walker-count 250
   set walker-vision-dist 10
 
-  ifelse step-3 != false [
+  ifelse step-3? = false [
     set houses-to-setup 0
     set house-spacing 0
     set weirdness 0
@@ -727,7 +727,7 @@ to question3-lo
   set walker-count 250
   set walker-vision-dist 10
 
-  ifelse step-3 != false [
+  ifelse step-3? = false [
     set houses-to-setup 0
     set house-spacing 0
     set weirdness 0
@@ -752,7 +752,7 @@ to question4-lo
   set walker-count 25
   set walker-vision-dist 10
 
-  ifelse step-3 != false [
+  ifelse step-3? = false [
     set houses-to-setup 0
     set house-spacing 0
     set weirdness 0
@@ -777,7 +777,7 @@ to question5-lo
   set walker-count 250
   set walker-vision-dist 2
 
-  ifelse step-3 != false [
+  ifelse step-3? = false [
     set houses-to-setup 0
     set house-spacing 0
     set weirdness 0
@@ -808,28 +808,14 @@ to step-2-q0
   set runnelator 0
   set runnels? false
   set show-popularity? false
-end
-
-to run-with-report
-  let max-ticks 2500
-
-  print-run-start max-ticks
-  reset-ticks
-  repeat max-ticks [
-    go
-    if ticks > max-ticks [ stop ]
-  ]
-
-  print-run-stats
-
-
+  setup-with-houses
 end
 
 to print-run-start [ max-ticks ]
   output-print "=== SIMULATION PARAMETERS ==="
-  if step-3? [
+  ifelse step-3? = true [
     output-print (word "Simulation name: Step 3, " simulation-name)
-  ] else [
+  ] [
     output-print (word "Simulation name: Step 1, " simulation-name)
   ]
   output-print (word "Run for ticks: " max-ticks)
@@ -857,6 +843,22 @@ to print-run-stats
   output-print (word "Entropy: " precision entropy 3)
   output-print (word "Curvilinearity: " precision curvilinearity 3)
   output-print "======================="
+end
+
+
+to run-with-report
+  let max-ticks 2500
+
+  print-run-start max-ticks
+  reset-ticks
+  repeat max-ticks [
+    go
+    if ticks > max-ticks [ stop ]
+  ]
+
+  print-run-stats
+
+
 end
 
 
@@ -1019,7 +1021,7 @@ houses-to-setup
 houses-to-setup
 1
 12
-0.0
+2.0
 1
 1
 NIL
@@ -1051,7 +1053,7 @@ weirdness
 weirdness
 0
 100
-0.0
+50.0
 1
 1
 weridotrons
@@ -1066,7 +1068,7 @@ house-spacing
 house-spacing
 1
 100
-0.0
+30.0
 1
 1
 NIL
@@ -1172,22 +1174,11 @@ runnels?
 1
 -1000
 
-SWITCH
-38
-178
-243
-211
-step-3?
-step-3?
-1
-1
--1000
-
 BUTTON
-140
-660
-252
-693
+275
+690
+387
+723
 NIL
 question1-hi
 NIL
@@ -1201,10 +1192,10 @@ NIL
 1
 
 BUTTON
-260
-660
-372
-693
+395
+690
+507
+723
 NIL
 question2-hi
 NIL
@@ -1218,10 +1209,10 @@ NIL
 1
 
 BUTTON
-380
-660
-492
-693
+515
+690
+627
+723
 NIL
 question3-hi
 NIL
@@ -1235,10 +1226,10 @@ NIL
 1
 
 BUTTON
-500
-660
-612
-693
+635
+690
+747
+723
 NIL
 question4-hi
 NIL
@@ -1252,10 +1243,10 @@ NIL
 1
 
 BUTTON
-620
-660
-732
-693
+755
+690
+867
+723
 NIL
 question5-hi
 NIL
@@ -1279,10 +1270,10 @@ TEXTBOX
 1
 
 BUTTON
-140
-700
-252
-733
+275
+730
+387
+763
 NIL
 question1-lo
 NIL
@@ -1296,10 +1287,10 @@ NIL
 1
 
 BUTTON
-260
-700
-372
-733
+395
+730
+507
+763
 NIL
 question2-lo
 NIL
@@ -1313,10 +1304,10 @@ NIL
 1
 
 BUTTON
-380
-700
-492
-733
+515
+730
+627
+763
 NIL
 question3-lo
 NIL
@@ -1330,10 +1321,10 @@ NIL
 1
 
 BUTTON
-500
-700
-612
-733
+635
+730
+747
+763
 NIL
 question4-lo
 NIL
@@ -1347,10 +1338,10 @@ NIL
 1
 
 BUTTON
-620
-700
-732
-733
+755
+730
+867
+763
 NIL
 question5-lo
 NIL
@@ -1364,10 +1355,10 @@ NIL
 1
 
 BUTTON
-755
-680
-887
-713
+505
+780
+637
+813
 NIL
 run-with-report
 NIL
@@ -1381,10 +1372,10 @@ NIL
 1
 
 BUTTON
-40
-680
-132
-713
+175
+710
+267
+743
 NIL
 step-0-q0
 NIL
@@ -1396,6 +1387,34 @@ NIL
 NIL
 NIL
 1
+
+BUTTON
+880
+710
+972
+743
+NIL
+step-2-q0
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+SWITCH
+520
+650
+622
+683
+step-3?
+step-3?
+1
+1
+-1000
 
 @#$#@#$#@
 ## WHAT IS IT?
