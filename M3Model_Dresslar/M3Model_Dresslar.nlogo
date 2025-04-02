@@ -88,7 +88,7 @@ to setup
     set color yellow
     set size 2
   ]
-  set runnel-durability 250   ;; why isnʻt this a slider, idk just not feeling it
+  set runnel-durability 175   ;; why isnʻt this a slider, idk just not feeling it
 
   ;; Initialize previous state variables
   set dt-stdev-popularity 0
@@ -107,8 +107,7 @@ to setup
   ;; Set thresholds
   set d2t-pathness-threshold .05
   set d2t-runnelness-threshold .05
-  set d2t-stdev-popularity-threshold .025
-
+  set d2t-stdev-popularity-threshold .015
 
   set d2t-pathness-last-inflection 0  ;; alerts right away are fine
   set d2t-runnelness-last-inflection 0
@@ -141,7 +140,7 @@ to setup-with-houses
     set color yellow
     set size 2
   ]
-  set runnel-durability 250
+  set runnel-durability 175
 
   ;; Initialize previous state variables
   set dt-stdev-popularity 0
@@ -161,7 +160,7 @@ to setup-with-houses
   ;; Set thresholds
   set d2t-pathness-threshold .05
   set d2t-runnelness-threshold .05
-  set d2t-stdev-popularity-threshold .025
+  set d2t-stdev-popularity-threshold .015
 
 
   set d2t-pathness-last-inflection 0  ;; alerts right away are fine
@@ -273,10 +272,10 @@ to become-more-popular
 end
 
 to check-for-runnel
-  ;; if the increase takes us over the runnelator, become a runnel
+  ;; if the increase in pop takes us over the (inverse) runnelator, become a runnel
 
   ;; check if we are maxed out on runnels
-  if (count patches with [ pcolor = blue ] > 500) [
+  if (count patches with [ pcolor = blue ] > 350) [
     stop
   ]
 
@@ -289,7 +288,7 @@ to check-for-runnel
   if (ticks - transition-tick > 25)  [
     let roll random(100) + 1
 
-    let runnel-roll (roll * (popularity * popularity) / 10)
+    let runnel-roll (roll * (popularity + popularity) / 100)
     ;; output-print(word roll "rolled " runnel-roll " vs. " (100 - runnelator) " popularity here " popularity )
     if runnel-roll > 100 - runnelator [
       if pcolor != blue [ ;; new runnel
@@ -671,7 +670,7 @@ to update-globals
       ]
       if (d2t-stdev-popularity-pct > d2t-stdev-popularity-threshold) and (d2t-stdev-popularity-last-inflection < ticks - inflection-cooldown) [
         output-print (word "Inflection. (Stdev Pop): tick=" ticks ", d2t=" precision d2t-stdev-popularity 3 " of current value " buffer-stdev-popularity)
-        if sound-on? [ sound:play-note "TUBULAR BELLS" 67 64 .5 ]
+        if sound-on? [ sound:play-note "TUBULAR BELLS" 55 64 .5 ]
         set d2t-stdev-popularity-last-inflection ticks
 
       ]
@@ -1264,10 +1263,10 @@ weirdness
 weirdness
 0
 100
-42.0
+25.0
 1
 1
-weridotrons
+NIL
 HORIZONTAL
 
 SLIDER
@@ -1368,7 +1367,7 @@ runnelator
 runnelator
 0
 100
-15.0
+25.0
 1
 1
 NIL
@@ -1475,7 +1474,7 @@ TEXTBOX
 250
 240
 316
-^^^^^^^^^^^^^^^^^^^^^^^^^^\n                    NEW STUFF\n  runnelator makes more runnels
+ ^^^^^^^^^^^^^^^^^^^^^^^^^\n                    NEW STUFF\n  runnelator makes more runnels
 11
 15.0
 1
@@ -1623,7 +1622,7 @@ SWITCH
 723
 step-3?
 step-3?
-0
+1
 1
 -1000
 
@@ -1644,7 +1643,7 @@ SWITCH
 383
 sound-on?
 sound-on?
-0
+1
 1
 -1000
 
