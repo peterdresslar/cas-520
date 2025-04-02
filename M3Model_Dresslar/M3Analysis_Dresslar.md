@@ -1,5 +1,7 @@
 # M3Analysis_Dresslar.md
 
+![Example image](https://raw.githubusercontent.com/peterdresslar/cas-520/refs/heads/main/public/M3.png)
+
 In M3Model_Dresslar.nlogo, I have modified the original Paths logo with the following additions:
 
 - Added runnels (blue patches) as water/obstacle paths
@@ -28,13 +30,23 @@ All experimental outputs appear at the bottom of this document. They can be re-r
 
 > Note that you should flip the step-3? switch *before* using a question preset.
 
-# Analysis
+## Analysis
 
-There is a wide array of behaviors available in this model. It would be difficult to describe all the behaviors anecdotally, and that was the impetus for the addition of a small experimental apparatus to the model.
+The base [NetLogo Paths model](https://ccl.northwestern.edu/netlogo/models/Paths) exhibits a wide range of behaviors, and with the modifications in my model, that range is increased significantly. It would be difficult to describe all the behaviors anecdotally, and that was the impetus for the addition of a small experimental apparatus to the model. It might be noted that the models (both the base model and the modified model) can exhibit phase-changing behavior over time, where path geometries change and total system measurements rise or fall in inflections: but, the occurence of this phase chasing is generally limited to a small subset of possible parameters. Many starting states lead to fairly static system dynamics.
 
-Many of the added parameters and inspection tools are performance-bound. For instance, the curvilinearity scan compares the position of a gray patch to all the line segements in the model, but doing so once a tick is prohibitively expensive. Additional pathfinding behavior might also be possible to add, but again the question would arise as to whether the computational impact would slow the model to a crawl.
+### Execution Modifications
 
-The following is a discussion of the modelʻs original parameters and the new param, runnealtor.
+The primary execution modification is the addition of runnels. Runnels are implemented using a patch `pcolor` of `blue` and represent the idea that paths overused by agents will, in reality, tend to wear down, fill with mud or water (or sand), and generally become undesirable or impassible for foot traffic. As implemented in the model, runnels are a barrier to passage for the "walker" turtle agents, and in fact the turtles can occassionally become entirely stuck when very popular locations close around them with runnels. 
+
+In order to cope with this emergent phenomenon, a radius is set up around houses that will not spawn runnels. This no-runnel radius might be thought of as paving or some other kind of improvement as seen in real-world buildings with similar needs.
+
+Most turtle behavior is left as it was in the base model, with the exception of pathfinding interactions with runnels.
+
+In order to provide for pathfinding in the presence of impermeable barriers, the modified model borrows heavily from the pathfinding of the [NetLogo Ants Model](https://ccl.northwestern.edu/netlogo/models/Ants). Instead of scenting food or chemical, agents in this model "scent" for paths and popularity. The Ants model is a movement based (not direction based) pathfinder and care has been taken to adapt those methods to our base behavior.
+
+### Parameters
+
+The following is a discussion of the modelʻs original parameters and the majoe new parameter, runnealtor.
 
 1. `popularity-decay-rate` has significant control over whether paths form, and how frequently. As a result there is also a major secondary effect from the param on the orderliness of pathing from segment to segment.
 
@@ -46,14 +58,36 @@ The following is a discussion of the modelʻs original parameters and the new pa
 
 5. `walker-vision-dist` has a very pronounced effect on turtle pathing, and seems to lead generally to more straightline approaches to goals. On the other hand, the variable has a pronounced impact on system performance at high values, since it controls the "scanning" by turtles of large numbers of patches every turn.
 
-6. `runnelator`, a novel parameter for the system, generates "water" barriers on highly-travelled patches. The phenomenon leads to pronounced chaotic system effects at higher values, and watching the turtles divert to other goals due to path blockage is interesting. Most notably, the system of runnel creation and decay leads to cyclic impacts not only on base system statistics, but on secondary measures like entropy. These are best seen at higher values of `runnelator`.
+6. `runnelator`, a novel parameter for the system, generates "water" barriers on highly-travelled patches. The phenomenon leads to pronounced chaotic system effects at higher values, and watching the turtles divert to other goals due to path blockage is interesting. Most notably, the system of runnel creation and decay leads to cyclic impacts not only on base system statistics, but on secondary measures like entropy. These are best seen at higher values of `runnelator`. Runnel counts are capped at an arbitrary ceiling for system performance considerations.
 
-7. `weirdness` is a geometry controlling parameter added solely for the reviewerʻs enjoyment.
+7. `weirdness` is a geometry-controlling parameter added solely for the reviewerʻs enjoyment.
 
+### Measurements
 
+Many of the added parameters and inspection tools are performance-bound. For instance, the curvilinearity scan compares the position of a gray patch to all the line segements in the model, but doing so once a tick is prohibitively expensive.
 
+- Pathness and Runnelness: These are simply summary counts of patches currently exhibiting `gray` or `blue` colors representing state. The runnel count cap will be visible in telemetry for some runs.
 
-# Experimental Outputs
+- Popularity: These are the mean and standard deviation measurements of `popularity`, a patch property that is modified through agent proximity. Paths are generated from higher `popularity` patches. Note that standard deviation is a dynamic measurement of system behaviour, as would be expected given that paths between destinations would grow in particular popularity as they are "found" by agents.
+
+- Entropy: as an experimental measure, the model adapts an implementation of Shannon Entropy. This adaptation could be described as: 
+
+\[
+H(t) = -\sum_{i \in \{path,grass\}} p_i(t) \ln(p_i(t) + \epsilon)
+\]
+
+where:
+- \(p_i(t)\) is the proportion of state \(i\) at time \(t\)
+- \(\epsilon = 10^{-10}\)
+- \(p_i(t) = \frac{n_i(t)}{n_{path}(t) + n_{grass}(t)}\)
+
+There are many sources for the well-known Shannon Entropy measure, but in partcular this model adapts a Python implementation described here: https://stackoverflow.com/a/50313657. Runnels are not included in this impplementation. We might observe that the system does not exhibit significant entropy changes in many states, but perturbations can be seen in particular with highe values for `popularity-decay-rate` (for example).
+
+- Finally, we have a very limited version of path curvilinearity testing. This was difficult to implement and is problematic to run from a performance perspective. Upon setup, the system computes lines between all of the houses. Then to compute curvilinearity, the system measures and averages the distance from sampled patches to the locations of these lines (which are implemented to imbue patches with an `on-line?` property.) This approach has limitations that will doubtless be immediatley obvious to the reviewer, but nonetheless the measure does exhibit some satisfying sensitivity to path "curviness" under certain situations.
+
+## Results
+
+The following data are run results corresponding to each of the assignment questions. It might be interesting to note in particular the presence or abscence of inflection points under the various requested starting conditions. Note that the model is not deterministic in behavior (both starting points and pathfinding involve random checks) and that additional runs under the same starting conditions can generate somewhat different outputs.
 
 ```
 
