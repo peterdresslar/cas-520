@@ -105,9 +105,9 @@ to setup
   set dt-stdev-popularity-prev 0
 
   ;; Set thresholds
-  set d2t-pathness-threshold .1
-  set d2t-runnelness-threshold .1
-  set d2t-stdev-popularity-threshold 0.1
+  set d2t-pathness-threshold .05
+  set d2t-runnelness-threshold .05
+  set d2t-stdev-popularity-threshold .025
 
 
   set d2t-pathness-last-inflection 0  ;; alerts right away are fine
@@ -157,10 +157,11 @@ to setup-with-houses
   set stdev-popularity-prev 0
   set dt-stdev-popularity-prev 0
 
- ;; Set thresholds
-  set d2t-pathness-threshold .1
-  set d2t-runnelness-threshold .1
-  set d2t-stdev-popularity-threshold 0.1
+
+  ;; Set thresholds
+  set d2t-pathness-threshold .05
+  set d2t-runnelness-threshold .05
+  set d2t-stdev-popularity-threshold .025
 
 
   set d2t-pathness-last-inflection 0  ;; alerts right away are fine
@@ -339,16 +340,19 @@ to walk-towards-goal
   face best-way-to goal
 
   ;; okay, walking. it just got treacherous
-  if [pcolor] of patch-ahead 1 = blue [  ;; trouble. best-way-to-goal has let us down
+  if [pcolor] of patch-ahead 1 = blue [  ;; trouble. best-way-to goal has let us down
     ;; If there's a runnel directly ahead, look for another direction
-    let potential-moves (patches at-points [[0 1] [1 1] [1 0] [1 -1] [0 -1] [-1 -1] [-1 0] [-1 1]])  ;; feels like game of life
+    let potential-moves (patches at-points [[0 1] [1 1] [1 0] [1 -1] [0 -1] [-1 -1] [-1 0] [-1 1]])  ;; a CA is here
     let safe-moves potential-moves with [pcolor != blue] ;; simular to our pathfinding from before
 
     ifelse any? safe-moves [
       face min-one-of safe-moves [distance [goal] of myself]
     ] [
       ;; bad news, we are at the bottom of the ifelse stack
-      rt random 45
+      ;; we can try resetting goal but it likely wonʻt work
+      set goal one-of patches  ;; anywhere
+      ;; if all else fails
+      wiggle
       ; output-print("a turtle is runneled")
       stop  ;; Don't execute the fd 1 below
     ]
@@ -358,13 +362,18 @@ to walk-towards-goal
   fd 1
 end
 
+
+;; destinations and paths are a lot like chemical and nest for ants
+;; see the ants model https://www.netlogoweb.org/launch#https://www.netlogoweb.org/assets/modelslib/Sample%20Models/Biology/Ants.nlogo
+;; our challenge is to preserve the original best-way-to
+;; and also to avoid overwhelming the processor
+
 to-report best-way-to [ destination ]
-  ; Only use the runnel-aware pathfinding if there are runnels in sight
-  ; This makes the model much more efficient
-  ifelse any? patches in-radius walker-vision-dist with [pcolor = blue] [
-    report best-way-avoiding-runnels destination
+  ;; only use the runnel-aware pathfinding if there are runnels in sight --> performance
+  ifelse any? patches in-cone walker-vision-dist with [pcolor = blue] [   ;; instead of in-radius from below, we just worry about whatʻs in front of us
+    report best-way-to-avoid-runnels destination
   ] [
-    ; Original pathfinding logic when no runnels are visible
+    ; (original)
     ; of all the visible route patches, select the ones
     ; that would take me closer to my destination
     let visible-patches patches in-radius walker-vision-dist
@@ -383,27 +392,29 @@ to-report best-way-to [ destination ]
   ]
 end
 
-to-report best-way-avoiding-runnels [ destination ]
-  ; This procedure is only called when runnels are visible
+;; this is the tricky part. we have seen blue and need to deal with it.
+;; we need to flow up into
+to-report best-way-to-avoid-runnels [ destination ]
+  ;; look for paths
   let visible-patches patches in-radius walker-vision-dist
   let visible-routes visible-patches with [ pcolor = gray ]
 
-  ; Filter out routes that have runnels nearby in the direction of travel
+  ; filter out runnels -- theyʻre not safe!
   let safe-routes visible-routes with [
     not any? (patches in-radius 1) with [pcolor = blue]
   ]
 
-  ; First preference: use safe routes that take me closer to destination
+  ; 1. find safe routes that take me closer to destination
   let safe-routes-that-take-me-closer safe-routes with [
     distance destination < [ distance destination - 1 ] of myself
   ]
 
-  ; Second preference: use any routes that take me closer to destination
+  ; 2. find any routes that take me closer to destination
   let routes-that-take-me-closer visible-routes with [
     distance destination < [ distance destination - 1 ] of myself
   ]
 
-  ; Choose the best path based on our preferences
+  ; 3. think it over
   ifelse any? safe-routes-that-take-me-closer [
     ; Best case: we have safe routes that take us closer
     report min-one-of safe-routes-that-take-me-closer [ distance self ]
@@ -412,8 +423,7 @@ to-report best-way-avoiding-runnels [ destination ]
       ; Second best: routes that take us closer but might have runnels nearby
       report min-one-of routes-that-take-me-closer [ distance self ]
     ][
-      ; If there are no routes to our destination, head directly there
-      ; but check if there are runnels directly in our path
+
       let direct-path patches in-cone (distance destination) 30 with [pcolor = blue]
 
       ifelse any? direct-path [
@@ -435,6 +445,38 @@ to-report best-way-avoiding-runnels [ destination ]
     ]
   ]
 end
+
+;; straight outta Ants
+to wiggle  ;; turtle procedure
+  rt random 40
+  lt random 40
+  if not can-move? 1 [ rt 180 ]
+end
+
+to-report popularity-scent-at-angle [angle]
+  let p patch-at-heading-and-distance (heading + angle) 1  ;; donʻt just do right and ahead
+  ifelse p = nobody or [pcolor] of p = blue   ;; slightly more complicated due to runnel
+    [ report 0 ]  ;; return 0 for runnels or off-world
+    [ report [popularity] of p ]
+end
+
+to-report path-scent-at-angle [angle]
+  let p patch-at-heading-and-distance (heading + angle) 1  ;; donʻt just do right and ahead
+  if p = nobody or [pcolor] of p = blue [ report 0 ]
+
+  ;; high value for paths, medium for high popularity (pathiness)
+  ifelse [pcolor] of p = gray
+    [ report 100 + [popularity] of p ] ;; established paths are preferred
+    [
+      ;; Factor in how close this direction takes us to our goal
+      let distance-to-goal distance goal
+      let patch-distance-to-goal [distance goal] of p
+      let direction-value 50 * (distance-to-goal - path-distance-to-goal)
+
+      report [pathiness] of p + direction-value
+    ]
+end
+
 
 to-report check-curvilinearity
   ;; avoid zeroness
@@ -783,7 +825,7 @@ to question4-hi
   set popularity-decay-rate 4
   set popularity-per-step 20
   set minimum-route-popularity 80
-  set walker-count 960
+  set walker-count 500
   set walker-vision-dist 10
 
   ifelse step-3? = false [
@@ -1128,7 +1170,7 @@ walker-count
 walker-count
 0
 1000
-960.0
+250.0
 1
 1
 NIL
@@ -1199,7 +1241,7 @@ houses-to-setup
 houses-to-setup
 1
 12
-7.0
+9.0
 1
 1
 NIL
@@ -1231,7 +1273,7 @@ weirdness
 weirdness
 0
 100
-20.0
+42.0
 1
 1
 weridotrons
@@ -1246,7 +1288,7 @@ house-spacing
 house-spacing
 1
 100
-30.0
+35.0
 1
 1
 NIL
@@ -1335,7 +1377,7 @@ runnelator
 runnelator
 0
 100
-30.0
+15.0
 1
 1
 NIL
