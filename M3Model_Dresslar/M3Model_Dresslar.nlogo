@@ -17,14 +17,8 @@ globals [
   mouse-clicked?
   avg-popularity
   stdev-popularity
-  dt-stdev-popularity
-  d2t-stdev-popularity
   pathness
-  dt-pathness
-  d2t-pathness
   runnelness
-  dt-runnelness
-  d2t-runnelness
   grassness
   curvilinearity
   entropy
@@ -36,6 +30,33 @@ globals [
   runnelation-factor
   simulation-name
   step-2?
+
+  ;;;; inflection point detection
+  ;; in order to detect inflection points we need to track current and past states and some derivatives also
+  ;; a chore, but would be worth it if it works
+
+  dt-stdev-popularity
+  d2t-stdev-popularity
+  dt-pathness
+  d2t-pathness
+  dt-runnelness
+  d2t-runnelness
+
+  ;; priors
+  pathness-prev
+  dt-pathness-prev
+  runnelness-prev
+  dt-runnelness-prev
+  stdev-popularity-prev
+  dt-stdev-popularity-prev
+
+  ;; more thresholds! different d2ts in particular are going to need to be monitored with differnt sensitivities
+
+  d2t-pathness-threshold
+  d2t-runnelness-threshold
+  d2t-stdev-popularity-threshold
+
+
 ]
 
 to setup
