@@ -1,3 +1,5 @@
+extensions [ sound ]
+
 breed [ houses house ]  ;; kept forgetting these were called buildings, so they are not anymore.
 
 breed [ walkers walker ]
@@ -25,7 +27,7 @@ globals [
   houses-built
   lines
   eps
-  new-lines-buffer  ;;; this is very sad  :-(
+  new-lines-buffer
   runnel-durability
   runnelation-factor
   simulation-name
@@ -56,6 +58,14 @@ globals [
   d2t-runnelness-threshold
   d2t-stdev-popularity-threshold
 
+  ;;
+  d2t-pathness-last-inflection
+  d2t-runnelness-last-inflection
+  d2t-stdev-popularity-last-inflection
+
+  ;; cooldown
+
+  inflection-cooldown
 
 ]
 
@@ -78,7 +88,34 @@ to setup
     set color yellow
     set size 2
   ]
-  set runnel-durability 250
+  set runnel-durability 250   ;; why isnʻt this a slider, idk just not feeling it
+
+  ;; Initialize previous state variables
+  set dt-stdev-popularity 0
+  set d2t-stdev-popularity 0
+  set dt-pathness 0
+  set d2t-pathness 0
+  set dt-runnelness 0
+  set d2t-runnelness 0
+  set pathness-prev 0
+  set dt-pathness-prev 0
+  set runnelness-prev 0
+  set dt-runnelness-prev 0
+  set stdev-popularity-prev 0
+  set dt-stdev-popularity-prev 0
+
+  ;; Set thresholds
+  set d2t-pathness-threshold .1
+  set d2t-runnelness-threshold .1
+  set d2t-stdev-popularity-threshold 0.1
+
+
+  set d2t-pathness-last-inflection 0  ;; alerts right away are fine
+  set d2t-runnelness-last-inflection 0
+  set d2t-stdev-popularity-last-inflection 0
+
+  set inflection-cooldown 50
+
   reset-ticks
   update-globals
 end
@@ -105,6 +142,33 @@ to setup-with-houses
     set size 2
   ]
   set runnel-durability 250
+
+  ;; Initialize previous state variables
+  set dt-stdev-popularity 0
+  set d2t-stdev-popularity 0
+  set dt-pathness 0
+  set d2t-pathness 0
+  set dt-runnelness 0
+  set d2t-runnelness 0
+  set pathness-prev 0
+  set dt-pathness-prev 0
+  set runnelness-prev 0
+  set dt-runnelness-prev 0
+  set stdev-popularity-prev 0
+  set dt-stdev-popularity-prev 0
+
+ ;; Set thresholds
+  set d2t-pathness-threshold .1
+  set d2t-runnelness-threshold .1
+  set d2t-stdev-popularity-threshold 0.1
+
+
+  set d2t-pathness-last-inflection 0  ;; alerts right away are fine
+  set d2t-runnelness-last-inflection 0
+  set d2t-stdev-popularity-last-inflection 0
+
+  set inflection-cooldown 50
+
   reset-ticks
   update-globals
 end
@@ -507,37 +571,103 @@ end
 to update-globals
   set eps 1e-10   ;;; yet another epsilonish value
   ;; set up for dts and d2ts... basically going to try and find inflection points and
-  ;; bark them out
+  ;; beep them out
+
+  ;; we have to do math in the middle of all this, so we need to do
+  ;; set buffer states (current state buffers)
+  ;; deal with dts (velocity)
+  ;; deal with d2ts (accelertation)
+  ;; update previous from current
+  ;; update real states
 
 
+  ;; buffer states
+  let buffer-avg-popularity mean [popularity] of patches
+  let buffer-stdev-popularity standard-deviation [popularity] of patches
+  let buffer-pathness count patches with [pcolor = gray]
+  let buffer-runnelness count patches with [pcolor = blue]
+  let buffer-grassness count patches with [pcolor = green]
 
+  ;; main summaries needed for telltailing, is that a word
+  set avg-popularity buffer-avg-popularity
+  set stdev-popularity buffer-stdev-popularity
+  set pathness buffer-pathness
+  set runnelness buffer-runnelness
+  set grassness buffer-grassness
 
+  ;; note that d2ts need to go back 2 steps
+  if ticks > 1 [  ;; donʻt remove
+    set dt-pathness (buffer-pathness - pathness-prev)
+    set dt-runnelness (buffer-runnelness - runnelness-prev)
+    set dt-stdev-popularity (buffer-stdev-popularity - stdev-popularity-prev)
 
+    if ticks > 2 [  ;; donʻt remove
+      set d2t-pathness (dt-pathness - dt-pathness-prev)
+      set d2t-runnelness (dt-runnelness - dt-runnelness-prev)
+      set d2t-stdev-popularity (dt-stdev-popularity - dt-stdev-popularity-prev)
 
+      ;output-print (word "d2t-pathness: " precision d2t-pathness 3 ", d2t-runnelness: " precision d2t-runnelness 3 ", d2t-stdev-popularity: " precision d2t-stdev-popularity 3)
+      ;output-print (word "d2t-pathness-threshold: " d2t-pathness-threshold ", d2t-runnelness-threshold: " d2t-runnelness-threshold ", d2t-stdev-popularity-threshold: " d2t-stdev-popularity-threshold)
 
+      ;; okay, absolute thresholds will not work, we need to convert each of our d2ts to a percentage of their current absolute values
+      ;; with dividing by zero of course
+      let d2t-pathness-pct 0
+      let d2t-runnelness-pct 0
+      let d2t-stdev-popularity-pct 0
+      if buffer-pathness > 0 [
+        set d2t-pathness-pct (abs(d2t-pathness) / buffer-pathness)
+      ]
+      if buffer-runnelness > 0 [
+        set d2t-runnelness-pct (abs(d2t-runnelness) / buffer-runnelness)
+      ]
+      if buffer-stdev-popularity > 0 [
+        set d2t-stdev-popularity-pct (abs(d2t-stdev-popularity) / buffer-stdev-popularity)
+      ]
 
+      output-print (word "d2t-pathness-pct: " precision d2t-pathness-pct 3 ", d2t-runnelness-pct: " precision d2t-runnelness-pct 3 ", d2t-stdev-popularity-pct: " precision d2t-stdev-popularity-pct 3)
+      if (d2t-pathness-pct > d2t-pathness-threshold) and true [
+        output-print (word "Inflection. (Pathness): tick=" ticks ", d2t=" precision d2t-pathness 3)
+        if sound-on? [ sound:play-note "TUBULAR BELLS" 60 64 .5 ]
+        set d2t-pathness-last-inflection ticks
+      ]
+      if (d2t-runnelness-pct > d2t-runnelness-threshold) and (d2t-runnelness-last-inflection < ticks - inflection-cooldown) [
+        output-print (word "Inflection. (Runnelness): tick=" ticks ", d2t=" precision d2t-runnelness 3)
+        if sound-on? [ sound:play-note "TUBULAR BELLS" 64 64 .5 ]
+        set d2t-runnelness-last-inflection ticks
+      ]
+      if (d2t-stdev-popularity-pct > d2t-stdev-popularity-threshold) and (d2t-stdev-popularity-last-inflection < ticks - inflection-cooldown) [
+        output-print (word "Inflection. (Stdev Pop): tick=" ticks ", d2t=" precision d2t-stdev-popularity 3)
+        if sound-on? [ sound:play-note "TUBULAR BELLS" 67 64 .5 ]
+        set d2t-stdev-popularity-last-inflection ticks
 
-  set avg-popularity mean [popularity] of patches
-  set stdev-popularity standard-deviation [popularity] of patches
-  set pathness count patches with [pcolor = gray]
-  set runnelness count patches with [pcolor = blue]
-  set grassness count patches with [pcolor = green]
+      ]
+    ]
+
+    set dt-pathness-prev dt-pathness
+    set dt-runnelness-prev dt-runnelness
+    set dt-stdev-popularity-prev dt-stdev-popularity
+  ]
+
+  set pathness-prev buffer-pathness
+  set runnelness-prev buffer-runnelness
+  set stdev-popularity-prev buffer-stdev-popularity
+
+  ;; Calculate Entropy and Curvilinearity
   let total-patches (grassness + pathness + runnelness)
   let pathness-p pathness / total-patches
   let grassness-p grassness / total-patches
-    ;; shannon entropy: -sum(p_i * log(p_i)) (proporitions)  PATH ONLY! todo update for runnelness
-    ;; https://stackoverflow.com/a/50313657
+  ;; shannon entropy: -sum(p_i * log(p_i)) (proporitions)  PATH ONLY! todo update for runnelness
+  ;; https://stackoverflow.com/a/50313657
   set entropy (- (
     (pathness-p * ln (pathness-p + eps)) +  ;; log^-2
     (grassness-p * ln (grassness-p + eps))
   ))
 
   ifelse ticks > 200
-    [ set curvilinearity check-curvilinearity    ]
+    [ set curvilinearity check-curvilinearity ]
     [ set curvilinearity 0 ]
-
-
 end
+
 
 ;;;;;;;;;; Homework stuff ;;;;;;;;;;
 
@@ -888,7 +1018,7 @@ to print-run-stats
   output-print (word "Final Runnelness: " runnelness)
   output-print (word "Final Grassness: " grassness)
   output-print (word "Final Entropy: " precision entropy 3)
-  output-print (word "Final Curvilinearity: " precision curvilinearity 3)
+  output-print (word "Final Curvilinearity (works only with houses): " precision curvilinearity 3)
   output-print "======================="
 end
 
@@ -982,7 +1112,7 @@ minimum-route-popularity
 minimum-route-popularity
 0
 100
-96.0
+80.0
 1
 1
 NIL
@@ -1068,7 +1198,7 @@ houses-to-setup
 houses-to-setup
 1
 12
-7.0
+0.0
 1
 1
 NIL
@@ -1076,9 +1206,9 @@ HORIZONTAL
 
 BUTTON
 75
-210
+215
 200
-243
+248
 NIL
 setup-with-houses
 NIL
@@ -1100,7 +1230,7 @@ weirdness
 weirdness
 0
 100
-20.0
+0.0
 1
 1
 weridotrons
@@ -1115,7 +1245,7 @@ house-spacing
 house-spacing
 1
 100
-30.0
+0.0
 1
 1
 NIL
@@ -1204,7 +1334,7 @@ runnelator
 runnelator
 0
 100
-20.0
+0.0
 1
 1
 NIL
@@ -1217,15 +1347,15 @@ SWITCH
 208
 runnels?
 runnels?
-0
+1
 1
 -1000
 
 BUTTON
 290
-690
+670
 402
-723
+703
 NIL
 question1-hi
 NIL
@@ -1240,9 +1370,9 @@ NIL
 
 BUTTON
 410
-690
+670
 522
-723
+703
 NIL
 question2-hi
 NIL
@@ -1257,9 +1387,9 @@ NIL
 
 BUTTON
 530
-690
+670
 642
-723
+703
 NIL
 question3-hi
 NIL
@@ -1274,9 +1404,9 @@ NIL
 
 BUTTON
 650
-690
+670
 762
-723
+703
 NIL
 question4-hi
 NIL
@@ -1291,9 +1421,9 @@ NIL
 
 BUTTON
 770
-690
+670
 882
-723
+703
 NIL
 question5-hi
 NIL
@@ -1318,9 +1448,9 @@ TEXTBOX
 
 BUTTON
 290
-730
+710
 402
-763
+743
 NIL
 question1-lo
 NIL
@@ -1335,9 +1465,9 @@ NIL
 
 BUTTON
 410
-730
+710
 522
-763
+743
 NIL
 question2-lo
 NIL
@@ -1352,9 +1482,9 @@ NIL
 
 BUTTON
 530
-730
+710
 642
-763
+743
 NIL
 question3-lo
 NIL
@@ -1369,9 +1499,9 @@ NIL
 
 BUTTON
 650
-730
+710
 762
-763
+743
 NIL
 question4-lo
 NIL
@@ -1386,9 +1516,9 @@ NIL
 
 BUTTON
 770
-730
+710
 882
-763
+743
 NIL
 question5-lo
 NIL
@@ -1403,9 +1533,9 @@ NIL
 
 BUTTON
 1130
-690
+670
 1305
-760
+740
 NIL
 run-with-report
 NIL
@@ -1419,10 +1549,10 @@ NIL
 1
 
 BUTTON
-190
-710
-282
-743
+185
+690
+277
+723
 NIL
 step-0-q0
 NIL
@@ -1437,9 +1567,9 @@ NIL
 
 BUTTON
 895
-710
+690
 987
-743
+723
 NIL
 step-2-q0
 NIL
@@ -1454,9 +1584,9 @@ NIL
 
 SWITCH
 1005
-710
+690
 1107
-743
+723
 step-3?
 step-3?
 1
@@ -1472,6 +1602,17 @@ To use the assignment buttons: set up a simulation for any step / question using
 11
 0.0
 1
+
+SWITCH
+120
+350
+240
+383
+sound-on?
+sound-on?
+0
+1
+-1000
 
 @#$#@#$#@
 ## WHAT IS IT?
