@@ -370,7 +370,7 @@ end
 
 to-report best-way-to [ destination ]
   ;; only use the runnel-aware pathfinding if there are runnels in sight --> performance
-  ifelse any? patches in-cone walker-vision-dist with [pcolor = blue] [   ;; instead of in-radius from below, we just worry about whatʻs in front of us
+  ifelse any? patches in-cone walker-vision-dist 45 with [pcolor = blue] [   ;; instead of in-radius from below, we just worry about whatʻs in front of us
     report best-way-to-avoid-runnels destination
   ] [
     ; (original)
@@ -393,57 +393,47 @@ to-report best-way-to [ destination ]
 end
 
 ;; this is the tricky part. we have seen blue and need to deal with it.
-;; we need to flow up into
+;; we want to intgegrate our ant scenting procs into something that looks like
+;; best-way-to from the original procedure
 to-report best-way-to-avoid-runnels [ destination ]
-  ;; look for paths
-  let visible-patches patches in-radius walker-vision-dist
-  let visible-routes visible-patches with [ pcolor = gray ]
+  ;; just like uphill-* from ants
+  ;; but we will combine pathiness and popularity into one sweet fragarance
+  let scent-ahead sniffin-around 0 destination
+  let scent-right sniffin-around 45 destination
+  let scent-left sniffin-around -45 destination
 
-  ; filter out runnels -- theyʻre not safe!
-  let safe-routes visible-routes with [
-    not any? (patches in-radius 1) with [pcolor = blue]
+  ;; the ants model just turns the ant, we need to report a patch instead
+  ;; see visible-patches above
+  ifelse (scent-right > scent-ahead) or (scent-left > scent-ahead) [
+    ifelse scent-right > scent-left
+      [ report patch-at-heading-and-distance (heading + 45) 1 ]
+      [ report patch-at-heading-and-distance (heading - 45) 1 ]
+  ] [
+    report patch-ahead 1
+  ]
+end
+
+to-report sniffin-around [angle destination]
+  let p patch-at-heading-and-distance (heading + angle) 1  ;; why is there not a patch-ahead(aheadness)
+
+  ; Avoid runnels completely
+  if p = nobody or [pcolor] of p = blue [ report -100 ]
+
+  let base-pathularity 0
+
+  ifelse [pcolor] of p = gray [
+    set base-pathularity 100 + [popularity] of p
+  ] [
+    set base-pathularity [popularity] of p
   ]
 
-  ; 1. find safe routes that take me closer to destination
-  let safe-routes-that-take-me-closer safe-routes with [
-    distance destination < [ distance destination - 1 ] of myself
-  ]
+  ; now we need to bring in the best-way-to approach since ants have no idea about distances
+  let my-distance-to-goal distance destination
+  let patch-distance-to-goal [distance destination] of p
+  let direction 50 * (my-distance-to-goal - patch-distance-to-goal)
 
-  ; 2. find any routes that take me closer to destination
-  let routes-that-take-me-closer visible-routes with [
-    distance destination < [ distance destination - 1 ] of myself
-  ]
-
-  ; 3. think it over
-  ifelse any? safe-routes-that-take-me-closer [
-    ; Best case: we have safe routes that take us closer
-    report min-one-of safe-routes-that-take-me-closer [ distance self ]
-  ][
-    ifelse any? routes-that-take-me-closer [
-      ; Second best: routes that take us closer but might have runnels nearby
-      report min-one-of routes-that-take-me-closer [ distance self ]
-    ][
-
-      let direct-path patches in-cone (distance destination) 30 with [pcolor = blue]
-
-      ifelse any? direct-path [
-        ; Find a path around the runnels
-        let potential-paths visible-patches with [
-          pcolor != blue and not any? neighbors with [pcolor = blue]
-        ]
-
-        ifelse any? potential-paths [
-          report min-one-of potential-paths [
-            distance [destination] of myself
-          ]
-        ][
-          report destination ; If completely blocked, just head to destination
-        ]
-      ][
-        report destination ; No runnels in our path
-      ]
-    ]
-  ]
+  ; itʻs pathularity with an angle
+  report base-pathularity + direction
 end
 
 ;; straight outta Ants
@@ -460,20 +450,21 @@ to-report popularity-scent-at-angle [angle]
     [ report [popularity] of p ]
 end
 
-to-report path-scent-at-angle [angle]
+to-report pathiness-scent-at-angle [angle]
   let p patch-at-heading-and-distance (heading + angle) 1  ;; donʻt just do right and ahead
   if p = nobody or [pcolor] of p = blue [ report 0 ]
 
-  ;; high value for paths, medium for high popularity (pathiness)
   ifelse [pcolor] of p = gray
-    [ report 100 + [popularity] of p ] ;; established paths are preferred
+    [ report 100 + [popularity] of p ] ;; better pathiness
     [
-      ;; Factor in how close this direction takes us to our goal
+    ;; again we use the source model
       let distance-to-goal distance goal
       let patch-distance-to-goal [distance goal] of p
-      let direction-value 50 * (distance-to-goal - path-distance-to-goal)
+      let direction 50 * (distance-to-goal - patch-distance-to-goal)
 
-      report [pathiness] of p + direction-value
+     ;;output-print(word ([popularity] of p + direction)
+
+      report [popularity] of p + direction
     ]
 end
 
