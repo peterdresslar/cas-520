@@ -624,19 +624,20 @@ to update-globals
         set d2t-stdev-popularity-pct (abs(d2t-stdev-popularity) / buffer-stdev-popularity)
       ]
 
-      output-print (word "d2t-pathness-pct: " precision d2t-pathness-pct 3 ", d2t-runnelness-pct: " precision d2t-runnelness-pct 3 ", d2t-stdev-popularity-pct: " precision d2t-stdev-popularity-pct 3)
-      if (d2t-pathness-pct > d2t-pathness-threshold) and true [
-        output-print (word "Inflection. (Pathness): tick=" ticks ", d2t=" precision d2t-pathness 3)
+      ; output-print (word "d2t-pathness-pct: " precision d2t-pathness-pct 3 ", d2t-runnelness-pct: " precision d2t-runnelness-pct 3 ", d2t-stdev-popularity-pct: " precision d2t-stdev-popularity-pct 3)
+      ; output-print(word d2t-pathness-last-inflection ticks inflection-cooldown) ;; carnage setting this all up
+      if (d2t-pathness-pct > d2t-pathness-threshold) and (d2t-pathness-last-inflection < ticks - inflection-cooldown) [
+        output-print (word "Inflection. (Pathness): tick=" ticks ", d2t=" precision d2t-pathness 3 " of current value " buffer-pathness)
         if sound-on? [ sound:play-note "TUBULAR BELLS" 60 64 .5 ]
         set d2t-pathness-last-inflection ticks
       ]
       if (d2t-runnelness-pct > d2t-runnelness-threshold) and (d2t-runnelness-last-inflection < ticks - inflection-cooldown) [
-        output-print (word "Inflection. (Runnelness): tick=" ticks ", d2t=" precision d2t-runnelness 3)
+        output-print (word "Inflection. (Runnelness): tick=" ticks ", d2t=" precision d2t-runnelness 3 " of current value " buffer-runnelness)
         if sound-on? [ sound:play-note "TUBULAR BELLS" 64 64 .5 ]
         set d2t-runnelness-last-inflection ticks
       ]
       if (d2t-stdev-popularity-pct > d2t-stdev-popularity-threshold) and (d2t-stdev-popularity-last-inflection < ticks - inflection-cooldown) [
-        output-print (word "Inflection. (Stdev Pop): tick=" ticks ", d2t=" precision d2t-stdev-popularity 3)
+        output-print (word "Inflection. (Stdev Pop): tick=" ticks ", d2t=" precision d2t-stdev-popularity 3 " of current value " buffer-stdev-popularity)
         if sound-on? [ sound:play-note "TUBULAR BELLS" 67 64 .5 ]
         set d2t-stdev-popularity-last-inflection ticks
 
@@ -1127,7 +1128,7 @@ walker-count
 walker-count
 0
 1000
-250.0
+960.0
 1
 1
 NIL
@@ -1198,7 +1199,7 @@ houses-to-setup
 houses-to-setup
 1
 12
-0.0
+7.0
 1
 1
 NIL
@@ -1230,7 +1231,7 @@ weirdness
 weirdness
 0
 100
-0.0
+20.0
 1
 1
 weridotrons
@@ -1245,7 +1246,7 @@ house-spacing
 house-spacing
 1
 100
-0.0
+30.0
 1
 1
 NIL
@@ -1334,7 +1335,7 @@ runnelator
 runnelator
 0
 100
-0.0
+30.0
 1
 1
 NIL
@@ -1347,7 +1348,7 @@ SWITCH
 208
 runnels?
 runnels?
-1
+0
 1
 -1000
 
@@ -1589,7 +1590,7 @@ SWITCH
 723
 step-3?
 step-3?
-1
+0
 1
 -1000
 
