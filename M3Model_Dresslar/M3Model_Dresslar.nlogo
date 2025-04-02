@@ -1214,7 +1214,7 @@ popularity-per-step
 popularity-per-step
 0
 100
-96.0
+20.0
 1
 1
 NIL
@@ -1240,7 +1240,7 @@ houses-to-setup
 houses-to-setup
 1
 12
-7.0
+9.0
 1
 1
 NIL
@@ -1272,7 +1272,7 @@ weirdness
 weirdness
 0
 100
-0.0
+15.0
 1
 1
 NIL
@@ -1287,7 +1287,7 @@ house-spacing
 house-spacing
 1
 100
-30.0
+33.0
 1
 1
 NIL
@@ -1574,10 +1574,10 @@ NIL
 1
 
 BUTTON
-200
-820
-375
-890
+1130
+670
+1305
+740
 NIL
 run-with-report
 NIL
