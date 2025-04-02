@@ -120,7 +120,6 @@ to setup
 end
 
 to setup-with-houses
-  set simulation-name ""
   clear-all
   set houses-built 0
   set lines []
@@ -743,11 +742,12 @@ to question1-hi
   ] [
     set houses-to-setup 7
     set house-spacing 30
-    set weirdness 20
-    set runnelator 30
+    set weirdness 0
+    set runnelator 15
     set runnels? true
     set show-popularity? false
     setup-with-houses
+    set simulation-name "Question 1, High Param"
   ]
 
 end
@@ -772,11 +772,12 @@ to question2-hi
   ] [
     set houses-to-setup 7
     set house-spacing 30
-    set weirdness 20
-    set runnelator 30
+    set weirdness 0
+    set runnelator 15
     set runnels? true
     set show-popularity? false
     setup-with-houses
+    set simulation-name "Question 2, High Param"
   ]
 end
 
@@ -800,11 +801,12 @@ to question3-hi
   ] [
     set houses-to-setup 7
     set house-spacing 30
-    set weirdness 20
-    set runnelator 30
+    set weirdness 0
+    set runnelator 15
     set runnels? true
     set show-popularity? false
     setup-with-houses
+    set simulation-name "Question 3, High Param"
   ]
 end
 
@@ -828,10 +830,11 @@ to question4-hi
   ] [
     set houses-to-setup 7
     set house-spacing 30
-    set weirdness 20
-    set runnelator 30
+    set weirdness 0
+    set runnelator 15
     set runnels? true
     setup-with-houses
+    set simulation-name "Question 4, High Param"
   ]
 end
 
@@ -855,10 +858,11 @@ to question5-hi
   ] [
     set houses-to-setup 7
     set house-spacing 30
-    set weirdness 20
-    set runnelator 30
+    set weirdness 0
+    set runnelator 15
     set runnels? true
     setup-with-houses
+    set simulation-name "Question 5, High Param"
   ]
 end
 
@@ -882,10 +886,11 @@ to question1-lo
   ] [
     set houses-to-setup 7
     set house-spacing 30
-    set weirdness 20
-    set runnelator 30
+    set weirdness 0
+    set runnelator 15
     set runnels? true
     setup-with-houses
+    set simulation-name "Question 1, Low Param"
   ]
 end
 
@@ -909,10 +914,11 @@ end
   ] [
     set houses-to-setup 7
     set house-spacing 30
-    set weirdness 20
-    set runnelator 30
+    set weirdness 0
+    set runnelator 15
     set runnels? true
     setup-with-houses
+    set simulation-name "Question 2, Low Param"
   ]
 end
 
@@ -936,10 +942,11 @@ to question3-lo
   ] [
     set houses-to-setup 7
     set house-spacing 30
-    set weirdness 20
-    set runnelator 30
+    set weirdness 0
+    set runnelator 15
     set runnels? true
     setup-with-houses
+    set simulation-name "Question 3, Low Param"
   ]
 end
 
@@ -963,10 +970,11 @@ to question4-lo
   ] [
     set houses-to-setup 7
     set house-spacing 30
-    set weirdness 20
-    set runnelator 30
+    set weirdness 0
+    set runnelator 15
     set runnels? true
     setup-with-houses
+    set simulation-name "Question 4, Low Param"
   ]
 end
 
@@ -990,10 +998,11 @@ to question5-lo
   ] [
     set houses-to-setup 7
     set house-spacing 30
-    set weirdness 20
-    set runnelator 30
+    set weirdness 0
+    set runnelator 15
     set runnels? true
     setup-with-houses
+    set simulation-name "Question 5, Low Param"
   ]
 end
 
@@ -1104,9 +1113,9 @@ ticks
 
 BUTTON
 30
-350
+355
 105
-383
+388
 NIL
 setup
 NIL
@@ -1205,7 +1214,7 @@ popularity-per-step
 popularity-per-step
 0
 100
-20.0
+96.0
 1
 1
 NIL
@@ -1231,7 +1240,7 @@ houses-to-setup
 houses-to-setup
 1
 12
-9.0
+7.0
 1
 1
 NIL
@@ -1263,7 +1272,7 @@ weirdness
 weirdness
 0
 100
-25.0
+0.0
 1
 1
 NIL
@@ -1278,7 +1287,7 @@ house-spacing
 house-spacing
 1
 100
-35.0
+30.0
 1
 1
 NIL
@@ -1367,7 +1376,7 @@ runnelator
 runnelator
 0
 100
-25.0
+15.0
 1
 1
 NIL
@@ -1385,9 +1394,9 @@ runnels?
 -1000
 
 BUTTON
-290
+415
 670
-402
+527
 703
 NIL
 question1-hi
@@ -1402,9 +1411,9 @@ NIL
 1
 
 BUTTON
-410
+535
 670
-522
+647
 703
 NIL
 question2-hi
@@ -1419,9 +1428,9 @@ NIL
 1
 
 BUTTON
-530
+655
 670
-642
+767
 703
 NIL
 question3-hi
@@ -1436,9 +1445,9 @@ NIL
 1
 
 BUTTON
-650
+775
 670
-762
+887
 703
 NIL
 question4-hi
@@ -1453,9 +1462,9 @@ NIL
 1
 
 BUTTON
-770
+895
 670
-882
+1007
 703
 NIL
 question5-hi
@@ -1480,9 +1489,9 @@ TEXTBOX
 1
 
 BUTTON
-290
+415
 710
-402
+527
 743
 NIL
 question1-lo
@@ -1497,9 +1506,9 @@ NIL
 1
 
 BUTTON
-410
+535
 710
-522
+647
 743
 NIL
 question2-lo
@@ -1514,9 +1523,9 @@ NIL
 1
 
 BUTTON
-530
+655
 710
-642
+767
 743
 NIL
 question3-lo
@@ -1531,9 +1540,9 @@ NIL
 1
 
 BUTTON
-650
+775
 710
-762
+887
 743
 NIL
 question4-lo
@@ -1548,9 +1557,9 @@ NIL
 1
 
 BUTTON
-770
+895
 710
-882
+1007
 743
 NIL
 question5-lo
@@ -1565,10 +1574,10 @@ NIL
 1
 
 BUTTON
-1130
-670
-1305
-740
+200
+820
+375
+890
 NIL
 run-with-report
 NIL
@@ -1576,15 +1585,15 @@ NIL
 T
 OBSERVER
 NIL
-NIL
+R
 NIL
 NIL
 1
 
 BUTTON
-185
+310
 690
-277
+402
 723
 NIL
 step-0-q0
@@ -1599,9 +1608,9 @@ NIL
 1
 
 BUTTON
-895
+1020
 690
-987
+1112
 723
 NIL
 step-2-q0
@@ -1616,13 +1625,13 @@ NIL
 1
 
 SWITCH
-1005
+205
 690
-1107
+300
 723
 step-3?
 step-3?
-1
+0
 1
 -1000
 
@@ -1638,14 +1647,24 @@ To use the assignment buttons: set up a simulation for any step / question using
 
 SWITCH
 120
-350
+355
 240
-383
+388
 sound-on?
 sound-on?
 1
 1
 -1000
+
+TEXTBOX
+635
+750
+840
+791
+^^^^^^^^^^^^^^^^^^^^^^\n Assignment Setup Buttons
+11
+0.0
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
