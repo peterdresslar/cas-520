@@ -35,6 +35,7 @@ globals [
   runnel-durability
   runnelation-factor
   simulation-name
+  step-2?
 ]
 
 to setup
@@ -447,7 +448,6 @@ end
 
 to process-new-lines-buffer
   if length new-lines-buffer > 0 [
-    output-print (word "processing " length new-lines-buffer " new lines from buffer.")
     foreach new-lines-buffer [ line-data ->
       add-line-to-patches line-data
     ]
@@ -522,8 +522,9 @@ end
 
 
 to step-0-q0
+  output-print "=== INITIALIZING SIMULATION ==="
   setup
-  set simulation-name "BASE EXPERIMENT"
+  set simulation-name "Base Question"
   set popularity-decay-rate 4
   set popularity-per-step 20
   set minimum-route-popularity 80
@@ -539,8 +540,9 @@ to step-0-q0
 end
 
 to question1-hi
+  output-print "=== INITIALIZING SIMULATION ==="
   setup
-  set simulation-name "Step 1, Question 1, High Param"
+  set simulation-name "Question 1, High Param"
   set popularity-decay-rate 96
   set popularity-per-step 20
   set minimum-route-popularity 80
@@ -567,8 +569,9 @@ to question1-hi
 end
 
 to question2-hi
+  output-print "=== INITIALIZING SIMULATION ==="
   setup
-  set simulation-name "Step 1, Question 2, High Param"
+  set simulation-name "Question 2, High Param"
   set popularity-decay-rate 4
   set popularity-per-step 96
   set minimum-route-popularity 80
@@ -589,12 +592,14 @@ to question2-hi
     set runnelator 30
     set runnels? true
     set show-popularity? false
+    setup-with-houses
   ]
 end
 
 to question3-hi
+  output-print "=== INITIALIZING SIMULATION ==="
   setup
-  set simulation-name "Step 1, Question 3, High Param"
+  set simulation-name "Question 3, High Param"
   set popularity-decay-rate 4
   set popularity-per-step 20
   set minimum-route-popularity 96
@@ -615,12 +620,14 @@ to question3-hi
     set runnelator 30
     set runnels? true
     set show-popularity? false
+    setup-with-houses
   ]
 end
 
 to question4-hi
+  output-print "=== INITIALIZING SIMULATION ==="
   setup
-  set simulation-name "Step 1, Question 4, High Param"
+  set simulation-name "Question 4, High Param"
   set popularity-decay-rate 4
   set popularity-per-step 20
   set minimum-route-popularity 80
@@ -640,12 +647,14 @@ to question4-hi
     set weirdness 20
     set runnelator 30
     set runnels? true
+    setup-with-houses
   ]
 end
 
 to question5-hi
+  output-print "=== INITIALIZING SIMULATION ==="
   setup
-  set simulation-name "Step 1, Question 5, High Param"
+  set simulation-name "Question 5, High Param"
   set popularity-decay-rate 4
   set popularity-per-step 20
   set minimum-route-popularity 80
@@ -665,12 +674,14 @@ to question5-hi
     set weirdness 20
     set runnelator 30
     set runnels? true
+    setup-with-houses
   ]
 end
 
 to question1-lo
+  output-print "=== INITIALIZING SIMULATION ==="
   setup
-  set simulation-name "Step 1, Question 1, Low Param"
+  set simulation-name "Question 1, Low Param"
   set popularity-decay-rate 0
   set popularity-per-step 20
   set minimum-route-popularity 80
@@ -690,12 +701,14 @@ to question1-lo
     set weirdness 20
     set runnelator 30
     set runnels? true
+    setup-with-houses
   ]
 end
 
   to question2-lo
+  output-print "=== INITIALIZING SIMULATION ==="
   setup
-  set simulation-name "Step 1, Question 2, Low Param"
+  set simulation-name "Question 2, Low Param"
   set popularity-decay-rate 4
   set popularity-per-step 4
   set minimum-route-popularity 80
@@ -715,12 +728,14 @@ end
     set weirdness 20
     set runnelator 30
     set runnels? true
+    setup-with-houses
   ]
 end
 
 to question3-lo
+  output-print "=== INITIALIZING SIMULATION ==="
   setup
-  set simulation-name "Step 1, Question 3, Low Param"
+  set simulation-name "Question 3, Low Param"
   set popularity-decay-rate 4
   set popularity-per-step 20
   set minimum-route-popularity 4
@@ -740,12 +755,14 @@ to question3-lo
     set weirdness 20
     set runnelator 30
     set runnels? true
+    setup-with-houses
   ]
 end
 
 to question4-lo
+  output-print "=== INITIALIZING SIMULATION ==="
   setup
-  set simulation-name "Step 1, Question 4, Low Param"
+  set simulation-name "Question 4, Low Param"
   set popularity-decay-rate 4
   set popularity-per-step 20
   set minimum-route-popularity 80
@@ -765,12 +782,14 @@ to question4-lo
     set weirdness 20
     set runnelator 30
     set runnels? true
+    setup-with-houses
   ]
 end
 
 to question5-lo
+  output-print "=== INITIALIZING SIMULATION ==="
   setup
-  set simulation-name "Step 1, Question 5, Low Param"
+  set simulation-name "Question 5, Low Param"
   set popularity-decay-rate 4
   set popularity-per-step 20
   set minimum-route-popularity 80
@@ -790,10 +809,13 @@ to question5-lo
     set weirdness 20
     set runnelator 30
     set runnels? true
+    setup-with-houses
   ]
 end
 
 to step-2-q0
+  set step-2? true
+  output-print "=== INITIALIZING SIMULATION ==="
   setup
   set simulation-name "Step 2, Question 0"
   set popularity-decay-rate 4
@@ -813,10 +835,14 @@ end
 
 to print-run-start [ max-ticks ]
   output-print "=== SIMULATION PARAMETERS ==="
-  ifelse step-3? = true [
-    output-print (word "Simulation name: Step 3, " simulation-name)
+  ifelse step-2? = true [
+     output-print ("Simulation name: ")
   ] [
-    output-print (word "Simulation name: Step 1, " simulation-name)
+    ifelse step-3? = true [
+      output-print (word "Simulation name: Step 3, " simulation-name)
+    ] [
+      output-print (word "Simulation name: Step 1, " simulation-name)
+    ]
   ]
   output-print (word "Run for ticks: " max-ticks)
   output-print (word "Houses to setup: " houses-to-setup)
@@ -836,18 +862,18 @@ end
 to print-run-stats
   output-print "=== SIMULATION STATISTICS ==="
   output-print (word "Ticks completed: " ticks)
-  output-print (word "Average popularity: " precision avg-popularity 3)
-  output-print (word "Pathness: " pathness)
-  output-print (word "Runnelness: " runnelness)
-  output-print (word "Grassness: " grassness)
-  output-print (word "Entropy: " precision entropy 3)
-  output-print (word "Curvilinearity: " precision curvilinearity 3)
+  output-print (word "Final Average popularity: " precision avg-popularity 3)
+  output-print (word "Final Pathness: " pathness)
+  output-print (word "Final Runnelness: " runnelness)
+  output-print (word "Final Grassness: " grassness)
+  output-print (word "Final Entropy: " precision entropy 3)
+  output-print (word "Final Curvilinearity: " precision curvilinearity 3)
   output-print "======================="
 end
 
 
 to run-with-report
-  let max-ticks 2500
+  let max-ticks 1250
 
   print-run-start max-ticks
   reset-ticks
@@ -935,7 +961,7 @@ minimum-route-popularity
 minimum-route-popularity
 0
 100
-80.0
+96.0
 1
 1
 NIL
@@ -1021,7 +1047,7 @@ houses-to-setup
 houses-to-setup
 1
 12
-2.0
+7.0
 1
 1
 NIL
@@ -1053,7 +1079,7 @@ weirdness
 weirdness
 0
 100
-50.0
+20.0
 1
 1
 weridotrons
@@ -1157,7 +1183,7 @@ runnelator
 runnelator
 0
 100
-0.0
+20.0
 1
 1
 NIL
@@ -1170,14 +1196,14 @@ SWITCH
 208
 runnels?
 runnels?
-1
+0
 1
 -1000
 
 BUTTON
-275
+290
 690
-387
+402
 723
 NIL
 question1-hi
@@ -1192,9 +1218,9 @@ NIL
 1
 
 BUTTON
-395
+410
 690
-507
+522
 723
 NIL
 question2-hi
@@ -1209,9 +1235,9 @@ NIL
 1
 
 BUTTON
-515
+530
 690
-627
+642
 723
 NIL
 question3-hi
@@ -1226,9 +1252,9 @@ NIL
 1
 
 BUTTON
-635
+650
 690
-747
+762
 723
 NIL
 question4-hi
@@ -1243,9 +1269,9 @@ NIL
 1
 
 BUTTON
-755
+770
 690
-867
+882
 723
 NIL
 question5-hi
@@ -1270,9 +1296,9 @@ TEXTBOX
 1
 
 BUTTON
-275
+290
 730
-387
+402
 763
 NIL
 question1-lo
@@ -1287,9 +1313,9 @@ NIL
 1
 
 BUTTON
-395
+410
 730
-507
+522
 763
 NIL
 question2-lo
@@ -1304,9 +1330,9 @@ NIL
 1
 
 BUTTON
-515
+530
 730
-627
+642
 763
 NIL
 question3-lo
@@ -1321,9 +1347,9 @@ NIL
 1
 
 BUTTON
-635
+650
 730
-747
+762
 763
 NIL
 question4-lo
@@ -1338,9 +1364,9 @@ NIL
 1
 
 BUTTON
-755
+770
 730
-867
+882
 763
 NIL
 question5-lo
@@ -1355,10 +1381,10 @@ NIL
 1
 
 BUTTON
-505
-780
-637
-813
+1130
+690
+1305
+760
 NIL
 run-with-report
 NIL
@@ -1372,9 +1398,9 @@ NIL
 1
 
 BUTTON
-175
+190
 710
-267
+282
 743
 NIL
 step-0-q0
@@ -1389,9 +1415,9 @@ NIL
 1
 
 BUTTON
-880
+895
 710
-972
+987
 743
 NIL
 step-2-q0
@@ -1406,15 +1432,25 @@ NIL
 1
 
 SWITCH
-520
-650
-622
-683
+1005
+710
+1107
+743
 step-3?
 step-3?
 1
 1
 -1000
+
+TEXTBOX
+30
+650
+180
+761
+To use the assignment buttons: set up a simulation for any step / question using the buttons. Toggle step-3 for Step 3 verisions of Step 1 questions. Press run-with-report, and view the Command Center.
+11
+0.0
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
