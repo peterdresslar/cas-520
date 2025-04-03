@@ -1,13 +1,42 @@
 patches-own [
   benefit-out                 ;; 1 for altruists, 0 for selfish
+                              ;; the original comment does not mention: 0 for void
   altruism-benefit
   fitness
-  self-weight self-fitness
+  self-weight self-fitness    ;;; this is two declarations on one line, an invitation to abandon a programming language
   alt-weight alt-fitness
   harsh-weight harsh-fitness
 ]
 
+globals [
+  absorbed-altruism-tick-pink
+  absorbed-altruism-tick-green
+  absorbed-altruism-tick-black
+
+  absorbed-altruism-sum-pink
+  absorbed-altruism-sum-green
+  absorbed-altruism-sum-black
+
+  benefit-per-pop-pink
+  benefit-per-pop-green
+  benefit-per-pop-black
+]
+
 to setup
+  ;; domain telemetry states ;;
+  set absorbed-altruism-tick-pink 0
+  set absorbed-altruism-tick-green 0
+  set absorbed-altruism-tick-black 0
+
+  set absorbed-altruism-sum-pink 0
+  set absorbed-altruism-sum-green 0
+  set absorbed-altruism-sum-black 0
+
+  set benefit-per-pop-pink 0
+  set benefit-per-pop-green 0
+  set benefit-per-pop-black 0
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
   clear-all
   ask patches [ initialize ]
   reset-ticks
@@ -32,14 +61,34 @@ to go
   ;; if all altruistic and selfish patches are gone, stop
   if all? patches [pcolor != pink and pcolor != green]
     [ stop ]
+
+  ;; stop if one type of pink or green is extinct
+  if all? patches [pcolor != pink]
+    [ stop ]
+  if all? patches [pcolor != green]
+    [ stop ]
+
   ask patches [
+    do-altruism
     set altruism-benefit   benefit-from-altruism * (benefit-out + sum [benefit-out] of neighbors4) / 5
   ]
   ask patches [
     perform-fitness-check
   ]
   lottery
+  update-globals
   tick
+end
+
+to do-altruism
+    set altruism-benefit   benefit-from-altruism * (benefit-out + sum [benefit-out] of neighbors4) / 5
+    ;; record the altruism benefit to tick counters by summing  neighbor by type and applying the benefit times neighbors of that type
+    let count-pink-neighbors sum [count patches with [pcolor = pink]] of neighbors4
+    let count-green-neighbors sum [count patches with [pcolor = green]] of neighbors4
+    let count-black-neighbors sum [count patches with [pcolor = black]] of neighbors4
+    set absorbed-altruism-tick-pink absorbed-altruism-tick-pink + count-pink-neighbors * altruism-benefit
+    set absorbed-altruism-tick-green absorbed-altruism-tick-green + count-green-neighbors * altruism-benefit
+    set absorbed-altruism-tick-black absorbed-altruism-tick-black + count-black-neighbors * altruism-benefit
 end
 
 to perform-fitness-check  ;; patch procedure
@@ -131,6 +180,25 @@ to clear-patch ;; patch procedure
   set benefit-out 0
 end
 
+to update-globals
+  set absorbed-altruism-sum-pink absorbed-altruism-sum-pink + absorbed-altruism-tick-pink
+  set absorbed-altruism-sum-green absorbed-altruism-sum-green + absorbed-altruism-tick-green
+  set absorbed-altruism-sum-black absorbed-altruism-sum-black + absorbed-altruism-tick-black
+    ifelse (count patches with [pcolor = pink] > 0) [
+    set benefit-per-pop-pink benefit-per-pop-pink + absorbed-altruism-sum-pink / count patches with [pcolor = pink]
+  ] [
+    set benefit-per-pop-pink 0
+  ]
+  ifelse (count patches with [pcolor = green] > 0) [
+    set benefit-per-pop-green benefit-per-pop-green + absorbed-altruism-sum-green / count patches with [pcolor = green]
+  ] [
+    set benefit-per-pop-green 0
+  ]
+  set absorbed-altruism-tick-pink 0
+  set absorbed-altruism-tick-green 0
+  set absorbed-altruism-tick-black 0
+end
+
 
 ; Copyright 1998 Uri Wilensky.
 ; See Info tab for full copyright and license.
@@ -188,7 +256,7 @@ altruistic-probability
 altruistic-probability
 0.0
 0.5
-0.26
+0.5
 0.01
 1
 NIL
@@ -203,7 +271,7 @@ selfish-probability
 selfish-probability
 0.0
 0.5
-0.26
+0.5
 0.01
 1
 NIL
@@ -218,7 +286,7 @@ disease
 disease
 0.0
 1.0
-0.0
+1.0
 0.01
 1
 NIL
@@ -233,7 +301,7 @@ benefit-from-altruism
 benefit-from-altruism
 0.0
 0.9
-0.48
+0.9
 0.01
 1
 NIL
@@ -248,7 +316,7 @@ cost-of-altruism
 cost-of-altruism
 0.0
 0.9
-0.13
+0.9
 0.01
 1
 NIL
@@ -280,17 +348,17 @@ harshness
 harshness
 0.0
 1.0
-0.0
+1.0
 0.01
 1
 NIL
 HORIZONTAL
 
 PLOT
-3
-262
-325
-410
+741
+14
+1063
+162
 Populations
 time
 frequency
@@ -305,11 +373,31 @@ PENS
 "altruists" 1.0 0 -2064490 true "" "plot count patches with [pcolor = pink]"
 "selfish" 1.0 0 -10899396 true "" "plot count patches with [pcolor = green]"
 
+PLOT
+742
+175
+1064
+323
+Absorbed Altruism
+NIL
+NIL
+0.0
+50.0
+0.0
+100.0
+true
+true
+"" ""
+PENS
+"altruists" 1.0 0 -2064490 true "" "plot absorbed-altruism-sum-pink"
+"selfish" 1.0 0 -10899396 true "" "plot absorbed-altruism-sum-green"
+"voids" 1.0 0 -16777216 true "" "plot absorbed-altruism-sum-black"
+
 MONITOR
-21
-430
-108
-487
+49
+284
+136
+341
 #altruists
 count patches with [pcolor = pink]
 1
@@ -317,15 +405,35 @@ count patches with [pcolor = pink]
 14
 
 MONITOR
-175
-429
-254
-486
+203
+283
+282
+340
 #selfish
 count patches with [pcolor = green]
 1
 1
 14
+
+PLOT
+742
+338
+1065
+488
+Benefit per Pop
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"pink" 1.0 0 -2064490 true "" "plot benefit-per-pop-pink"
+"green" 1.0 0 -10899396 true "" "plot benefit-per-pop-green"
+"black" 1.0 0 -16777216 true "" "plot benefit-per-pop-black"
 
 @#$#@#$#@
 ## WHAT IS IT?
