@@ -120,6 +120,7 @@ to setup
 end
 
 to setup-with-houses
+  set simulation-name ""
   clear-all
   set houses-built 0
   set lines []
@@ -1169,7 +1170,7 @@ walker-count
 walker-count
 0
 1000
-250.0
+333.0
 1
 1
 NIL
@@ -1184,7 +1185,7 @@ walker-vision-dist
 walker-vision-dist
 0
 30
-10.0
+6.0
 1
 1
 NIL
@@ -1240,7 +1241,7 @@ houses-to-setup
 houses-to-setup
 1
 12
-9.0
+7.0
 1
 1
 NIL
@@ -1272,7 +1273,7 @@ weirdness
 weirdness
 0
 100
-15.0
+32.0
 1
 1
 NIL
