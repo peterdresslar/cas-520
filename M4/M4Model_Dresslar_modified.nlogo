@@ -9,6 +9,7 @@ patches-own [
 ]
 
 globals [
+  max-ticks
   absorbed-altruism-tick-pink
   absorbed-altruism-tick-green
   absorbed-altruism-tick-black
@@ -37,6 +38,7 @@ to setup
   set benefit-per-pop-black 0
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+  set max-ticks 2500
   clear-all
   ask patches [ initialize ]
   reset-ticks
@@ -72,7 +74,7 @@ to go
     foreach (range min-pxcor (max-pxcor + 1)) [  j -> ;;
       let this-patch patch i j
       ask this-patch [
-          output-print (word pxcor " " pycor)
+          ;output-print (word pxcor " " pycor)  ;; will slow things to a crawl
           do-altruism
           set altruism-benefit benefit-from-altruism * (benefit-out + sum [benefit-out] of neighbors4) / 5
       ]
@@ -91,6 +93,8 @@ to go
   lottery
   update-globals
   tick
+  if ticks > max-ticks
+    [ stop ]
 end
 
 to do-altruism
@@ -117,9 +121,36 @@ to perform-fitness-check  ;; patch procedure
 end
 
 to lottery
-  ask patches [ record-neighbor-fitness ]
-  ask patches [ find-lottery-weights ]
-  ask patches [ next-generation ]
+
+  foreach (range min-pxcor (max-pxcor + 1)) [ i -> ;;
+    foreach ( range min-pxcor (max-pxcor + 1)) [ j -> ;; ...
+      let this-patch patch i j
+      ask this-patch [
+          record-neighbor-fitness
+      ]
+    ]
+  ]
+
+
+  foreach (range min-pxcor (max-pxcor + 1)) [ i -> ;;
+    foreach ( range min-pxcor (max-pxcor + 1)) [ j -> ;; ...
+      let this-patch patch i j
+      ask this-patch [
+          find-lottery-weights
+      ]
+    ]
+  ]
+
+
+  foreach (range min-pxcor (max-pxcor + 1)) [ i -> ;;
+    foreach ( range min-pxcor (max-pxcor + 1)) [ j -> ;; ...
+      let this-patch patch i j
+      ask this-patch [
+          next-generation
+      ]
+    ]
+  ]
+
 end
 
 to record-neighbor-fitness  ;; patch procedure
@@ -269,7 +300,7 @@ altruistic-probability
 altruistic-probability
 0.0
 0.5
-0.5
+0.26
 0.01
 1
 NIL
@@ -284,7 +315,7 @@ selfish-probability
 selfish-probability
 0.0
 0.5
-0.5
+0.26
 0.01
 1
 NIL
@@ -299,7 +330,7 @@ disease
 disease
 0.0
 1.0
-1.0
+0.5
 0.01
 1
 NIL
@@ -314,7 +345,7 @@ benefit-from-altruism
 benefit-from-altruism
 0.0
 0.9
-0.9
+0.45
 0.01
 1
 NIL
@@ -329,7 +360,7 @@ cost-of-altruism
 cost-of-altruism
 0.0
 0.9
-0.9
+0.45
 0.01
 1
 NIL
@@ -361,7 +392,7 @@ harshness
 harshness
 0.0
 1.0
-1.0
+0.48
 0.01
 1
 NIL
