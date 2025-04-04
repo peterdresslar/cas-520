@@ -9,7 +9,6 @@ patches-own [
 ]
 
 globals [
-  max-ticks
   absorbed-altruism-tick-pink
   absorbed-altruism-tick-green
   absorbed-altruism-tick-black
@@ -38,7 +37,6 @@ to setup
   set benefit-per-pop-black 0
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-  set max-ticks 2500
   clear-all
   ask patches [ initialize ]
   reset-ticks
@@ -93,8 +91,6 @@ to go
   lottery
   update-globals
   tick
-  if ticks > max-ticks
-    [ stop ]
 end
 
 to do-altruism
