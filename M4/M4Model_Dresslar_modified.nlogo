@@ -11,6 +11,13 @@ patches-own [
 globals [
   patches-ordered-xy
 
+  max-pink
+  max-green
+  max-black
+  min-pink
+  min-green
+  min-black
+
   absorbed-altruism-tick-pink
   absorbed-altruism-tick-green
   absorbed-altruism-tick-black
@@ -37,6 +44,13 @@ to setup
   set benefit-per-pop-pink 0
   set benefit-per-pop-green 0
   set benefit-per-pop-black 0
+
+  set max-pink 0
+  set max-green 0
+  set max-black 0
+  set min-pink 0
+  set min-green 0
+  set min-black 0
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
   clear-all
@@ -221,6 +235,26 @@ to update-globals
   ;; set absorbed-altruism-tick-pink 0
   ;; set absorbed-altruism-tick-green 0
   ;; set absorbed-altruism-tick-black 0
+
+  ;;; for the maxes and min counts, update if any have been exceeded
+  if (count patches with [pcolor = pink]) > max-pink [
+    set max-pink (count patches with [pcolor = pink])
+  ]
+  if (count patches with [pcolor = green]) > max-green [
+    set max-green (count patches with [pcolor = green])
+  ]
+  if (count patches with [pcolor = black]) > max-black [
+    set max-black (count patches with [pcolor = black])
+  ]
+  if (count patches with [pcolor = pink]) < min-pink [
+    set min-pink (count patches with [pcolor = pink])
+  ]
+  if (count patches with [pcolor = green]) < min-green [
+    set min-green (count patches with [pcolor = green])
+  ]
+  if (count patches with [pcolor = black]) < min-black [
+    set min-black (count patches with [pcolor = black])
+  ]
 end
 
 
