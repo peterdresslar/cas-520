@@ -84,12 +84,12 @@ end
 to do-altruism
     set altruism-benefit   benefit-from-altruism * (benefit-out + sum [benefit-out] of neighbors4) / 5
     ;; record the altruism benefit to tick counters by summing  neighbor by type and applying the benefit times neighbors of that type
-    let count-pink-neighbors sum [count patches with [pcolor = pink]] of neighbors4
-    let count-green-neighbors sum [count patches with [pcolor = green]] of neighbors4
-    let count-black-neighbors sum [count patches with [pcolor = black]] of neighbors4
-    set absorbed-altruism-tick-pink absorbed-altruism-tick-pink + count-pink-neighbors * altruism-benefit
-    set absorbed-altruism-tick-green absorbed-altruism-tick-green + count-green-neighbors * altruism-benefit
-    set absorbed-altruism-tick-black absorbed-altruism-tick-black + count-black-neighbors * altruism-benefit
+    ;; let count-pink-neighbors sum [count patches with [pcolor = pink]] of neighbors4
+    ;; let count-green-neighbors sum [count patches with [pcolor = green]] of neighbors4
+    ;; let count-black-neighbors sum [count patches with [pcolor = black]] of neighbors4
+    ;; set absorbed-altruism-tick-pink absorbed-altruism-tick-pink + count-pink-neighbors * altruism-benefit
+    ;; set absorbed-altruism-tick-green absorbed-altruism-tick-green + count-green-neighbors * altruism-benefit
+    ;; set absorbed-altruism-tick-black absorbed-altruism-tick-black + count-black-neighbors * altruism-benefit
 end
 
 to perform-fitness-check  ;; patch procedure
@@ -182,22 +182,27 @@ to clear-patch ;; patch procedure
 end
 
 to update-globals
-  set absorbed-altruism-sum-pink absorbed-altruism-sum-pink + absorbed-altruism-tick-pink
-  set absorbed-altruism-sum-green absorbed-altruism-sum-green + absorbed-altruism-tick-green
-  set absorbed-altruism-sum-black absorbed-altruism-sum-black + absorbed-altruism-tick-black
-    ifelse (count patches with [pcolor = pink] > 0) [
-    set benefit-per-pop-pink benefit-per-pop-pink + absorbed-altruism-sum-pink / count patches with [pcolor = pink]
-  ] [
-    set benefit-per-pop-pink 0
-  ]
-  ifelse (count patches with [pcolor = green] > 0) [
-    set benefit-per-pop-green benefit-per-pop-green + absorbed-altruism-sum-green / count patches with [pcolor = green]
-  ] [
-    set benefit-per-pop-green 0
-  ]
-  set absorbed-altruism-tick-pink 0
-  set absorbed-altruism-tick-green 0
-  set absorbed-altruism-tick-black 0
+ ;; set absorbed-altruism-sum-pink absorbed-altruism-sum-pink + absorbed-altruism-tick-pink
+ ;; set absorbed-altruism-sum-green absorbed-altruism-sum-green + absorbed-altruism-tick-green
+ ;; set absorbed-altruism-sum-black absorbed-altruism-sum-black + absorbed-altruism-tick-black
+ ;;   ifelse (count patches with [pcolor = pink] > 0) [
+ ;;     set benefit-per-pop-pink benefit-per-pop-pink + absorbed-altruism-sum-pink / count patches with [pcolor = pink]
+ ;;   ] [
+ ;;     set benefit-per-pop-pink 0
+ ;;   ]
+ ;;  ifelse (count patches with [pcolor = green] > 0) [
+ ;;    set benefit-per-pop-green benefit-per-pop-green + absorbed-altruism-sum-green / count patches with [pcolor = green]
+ ;;  ] [
+ ;;    set benefit-per-pop-green 0
+ ;;  ]
+ ;;  ifelse (count patches with [pcolor = black] > 0) [
+ ;;    set benefit-per-pop-black benefit-per-pop-black + absorbed-altruism-sum-black / count patches with [pcolor = black]
+ ;;  ] [
+ ;;    set benefit-per-pop-black 0
+ ;;  ]
+  ;;set absorbed-altruism-tick-pink 0
+  ;;set absorbed-altruism-tick-green 0
+  ;;set absorbed-altruism-tick-black 0
 end
 
 

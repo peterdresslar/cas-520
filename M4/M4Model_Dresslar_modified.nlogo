@@ -9,6 +9,8 @@ patches-own [
 ]
 
 globals [
+  patches-ordered-xy
+
   absorbed-altruism-tick-pink
   absorbed-altruism-tick-green
   absorbed-altruism-tick-black
@@ -39,6 +41,13 @@ to setup
 
   clear-all
   ask patches [ initialize ]
+
+  ;; far less computationally intensive to sort patches once
+  set patches-ordered-xy sort-by [ [p1 p2] ->
+    (([pycor] of p1) < ([pycor] of p2)) or
+    (([pycor] of p1) = ([pycor] of p2) and ([pxcor] of p1) < ([pxcor] of p2))
+  ] patches
+
   reset-ticks
 end
 
@@ -68,25 +77,20 @@ to go
   if all? patches [pcolor != green]
     [ stop ]
 
-  foreach (range min-pxcor (max-pxcor + 1)) [ i -> ;; exclusive
-    foreach (range min-pxcor (max-pxcor + 1)) [  j -> ;;
-      let this-patch patch i j
-      ask this-patch [
-          ;output-print (word pxcor " " pycor)  ;; will slow things to a crawl
-          do-altruism
-          set altruism-benefit benefit-from-altruism * (benefit-out + sum [benefit-out] of neighbors4) / 5
-      ]
+
+
+  foreach patches-ordered-xy [ p ->
+    ask p [
+      do-altruism
+      set altruism-benefit benefit-from-altruism * (benefit-out + sum [benefit-out] of neighbors4) / 5
     ]
   ]
 
-  foreach (range min-pxcor (max-pxcor + 1)) [ i -> ;;
-    foreach ( range min-pxcor (max-pxcor + 1)) [ j -> ;; ...
-      let this-patch patch i j
-      ask this-patch [
-          perform-fitness-check
-      ]
-    ]
+  foreach patches-ordered-xy [ p ->
+    ask p [ perform-fitness-check ]
   ]
+
+
 
   lottery
   update-globals
@@ -96,12 +100,12 @@ end
 to do-altruism
     set altruism-benefit   benefit-from-altruism * (benefit-out + sum [benefit-out] of neighbors4) / 5
     ;; record the altruism benefit to tick counters by summing  neighbor by type and applying the benefit times neighbors of that type
-    let count-pink-neighbors sum [count patches with [pcolor = pink]] of neighbors4
-    let count-green-neighbors sum [count patches with [pcolor = green]] of neighbors4
-    let count-black-neighbors sum [count patches with [pcolor = black]] of neighbors4
-    set absorbed-altruism-tick-pink absorbed-altruism-tick-pink + count-pink-neighbors * altruism-benefit
-    set absorbed-altruism-tick-green absorbed-altruism-tick-green + count-green-neighbors * altruism-benefit
-    set absorbed-altruism-tick-black absorbed-altruism-tick-black + count-black-neighbors * altruism-benefit
+    ;; let count-pink-neighbors sum [count patches with [pcolor = pink]] of neighbors4
+    ;; let count-green-neighbors sum [count patches with [pcolor = green]] of neighbors4
+    ;; let count-black-neighbors sum [count patches with [pcolor = black]] of neighbors4
+    ;; set absorbed-altruism-tick-pink absorbed-altruism-tick-pink + count-pink-neighbors * altruism-benefit
+    ;; set absorbed-altruism-tick-green absorbed-altruism-tick-green + count-green-neighbors * altruism-benefit
+    ;; set absorbed-altruism-tick-black absorbed-altruism-tick-black + count-black-neighbors * altruism-benefit
 end
 
 to perform-fitness-check  ;; patch procedure
@@ -117,35 +121,16 @@ to perform-fitness-check  ;; patch procedure
 end
 
 to lottery
-
-  foreach (range min-pxcor (max-pxcor + 1)) [ i -> ;;
-    foreach ( range min-pxcor (max-pxcor + 1)) [ j -> ;; ...
-      let this-patch patch i j
-      ask this-patch [
-          record-neighbor-fitness
-      ]
-    ]
+   foreach patches-ordered-xy [ p ->
+    ask p [ record-neighbor-fitness ]
+  ]
+  foreach patches-ordered-xy [ p ->
+    ask p [ find-lottery-weights ]
+  ]
+  foreach patches-ordered-xy [ p ->
+    ask p [ next-generation ]
   ]
 
-
-  foreach (range min-pxcor (max-pxcor + 1)) [ i -> ;;
-    foreach ( range min-pxcor (max-pxcor + 1)) [ j -> ;; ...
-      let this-patch patch i j
-      ask this-patch [
-          find-lottery-weights
-      ]
-    ]
-  ]
-
-
-  foreach (range min-pxcor (max-pxcor + 1)) [ i -> ;;
-    foreach ( range min-pxcor (max-pxcor + 1)) [ j -> ;; ...
-      let this-patch patch i j
-      ask this-patch [
-          next-generation
-      ]
-    ]
-  ]
 
 end
 
@@ -221,22 +206,22 @@ to clear-patch ;; patch procedure
 end
 
 to update-globals
-  set absorbed-altruism-sum-pink absorbed-altruism-sum-pink + absorbed-altruism-tick-pink
-  set absorbed-altruism-sum-green absorbed-altruism-sum-green + absorbed-altruism-tick-green
-  set absorbed-altruism-sum-black absorbed-altruism-sum-black + absorbed-altruism-tick-black
-    ifelse (count patches with [pcolor = pink] > 0) [
-    set benefit-per-pop-pink benefit-per-pop-pink + absorbed-altruism-sum-pink / count patches with [pcolor = pink]
-  ] [
-    set benefit-per-pop-pink 0
-  ]
-  ifelse (count patches with [pcolor = green] > 0) [
-    set benefit-per-pop-green benefit-per-pop-green + absorbed-altruism-sum-green / count patches with [pcolor = green]
-  ] [
-    set benefit-per-pop-green 0
-  ]
-  set absorbed-altruism-tick-pink 0
-  set absorbed-altruism-tick-green 0
-  set absorbed-altruism-tick-black 0
+  ;; set absorbed-altruism-sum-pink absorbed-altruism-sum-pink + absorbed-altruism-tick-pink
+  ;; set absorbed-altruism-sum-green absorbed-altruism-sum-green + absorbed-altruism-tick-green
+  ;; set absorbed-altruism-sum-black absorbed-altruism-sum-black + absorbed-altruism-tick-black
+  ;; ifelse (count patches with [pcolor = pink] > 0) [
+  ;;   set benefit-per-pop-pink benefit-per-pop-pink + absorbed-altruism-sum-pink / count patches with [pcolor = pink]
+  ;; ] [
+  ;;   set benefit-per-pop-pink 0
+  ;; ]
+  ;; ifelse (count patches with [pcolor = green] > 0) [
+  ;;   set benefit-per-pop-green benefit-per-pop-green + absorbed-altruism-sum-green / count patches with [pcolor = green]
+  ;; ] [
+  ;;   set benefit-per-pop-green 0
+  ;; ]
+  ;; set absorbed-altruism-tick-pink 0
+  ;; set absorbed-altruism-tick-green 0
+  ;; set absorbed-altruism-tick-black 0
 end
 
 
@@ -869,7 +854,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.3.0
+NetLogo 6.4.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
