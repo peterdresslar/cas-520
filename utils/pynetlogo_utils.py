@@ -6,6 +6,7 @@ import itertools
 import pandas as pd
 import numpy as np
 
+
 base_altruism_model = (
     "../M4/M4Model_Dresslar_base.nlogo"  # (copied into this directory!)
 )
@@ -38,6 +39,9 @@ def initialize_netlogo(model_path: str):
     # return the loaded netlogo instance
     return netlogo
 
+
+
+    
 
 def do_one_altruism_run(
     model: str,
@@ -127,6 +131,42 @@ def do_one_altruism_run(
     )
 
     return results
+
+
+def run_altruism_experiment_sobol(
+    model: str,
+    experiment_name: str,
+    max_ticks: int,
+    runs_per_node: int,
+    param_values: list[list[float]],
+):
+    # Fixed parameters
+    altruistic_probability = 0.26
+    selfish_probability = 0.26
+
+    # Extract parameter arrays for run_altruism_experiment
+    cost_values = param_values[:, 0].tolist()  # First column is cost
+    benefit_values = param_values[:, 1].tolist()  # Second column is benefit
+    disease_values = param_values[:, 2].tolist()  # Third column is disease
+    harshness_values = param_values[:, 3].tolist()  # Fourth column is harshness
+
+    # Create single-element lists for fixed parameters
+    ap_list = [altruistic_probability] * len(cost_values)
+    sp_list = [selfish_probability] * len(cost_values)
+
+    # Run experiment using existing function
+    run_altruism_experiment(
+        model=model,
+        experiment_name=experiment_name,
+        max_ticks=max_ticks,
+        runs_per_node=runs_per_node,
+        altruistic_probability_range=ap_list,
+        selfish_probability_range=sp_list,
+        cost_of_altruism_range=cost_values,
+        benefit_from_altruism_range=benefit_values,
+        disease_range=disease_values,
+        harshness_range=harshness_values
+    )
 
 
 # Save checkpoint of which combinations we've completed
