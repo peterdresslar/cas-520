@@ -91,7 +91,7 @@ to go
     [ stop ]
   if planes-on? [
     maybe-spawn-plane
-    ;; move-planes
+    move-planes
   ]
   update-timers
   spread-virus
@@ -218,18 +218,17 @@ end
 ;; DRESSLAR
 
 to maybe-spawn-plane
-  let frequency_damper 2
+  let frequency-damper 8
   let wall-size max-pxcor
 
   ;; check plane-frequency and roll 2d20 to go under its inverse. we don't want planes all the time
-  let this-roll ((random 20) + 1) * frequency_damper
-  output-print(word "rolled " this-roll " vs " plane-frequency)
+  let this-roll (random 20) * frequency-damper  ;; 0 is always a critical hit
+  ;; output-print(word "rolled " this-roll " vs " plane-frequency)
   if this-roll < plane-frequency [
     let wall (random 4)  ;;; upper right lower left
     let x 0
     let y 0
     let init-heading 0
-
 
   (ifelse
     wall = 0 [   ;; upper
@@ -273,24 +272,27 @@ to move-planes
   ;; okay, we need to move all the planes
   ;; if they hit the edge they are removed
   ;; if they hit any node, that node is linked to all the other nodes the plane has hit
-  ;;ask planes [
-   ;; fd airspeed
-    ;; if (xcor > max-pxcor) or (xcor < min-pxcor) or (ycor > max-pycor) or (ycor < min-pycor) [  ;; right left top bottom, i think
-    ;;  die
-    ;;]
+  ask planes [
+    fd airspeed
+    if (xcor > max-pxcor) or (xcor < min-pxcor) or (ycor > max-pycor) or (ycor < min-pycor) [  ;; right left top bottom, i think
+      die
+    ]
 
     ;; check for nearby node turtles within plane-radius
 
 
-    ;;if any? nodes-hit with [ distance myself < 1 ] [
-     ;; output-print(word "Plane hit node" first one-of nodes-hit with [ distance myself < 1 ])
-    ;;  output-print(word "Plane nodes-hit now " nodes-hit)
-    ;;  let hit-node first one-of nodes-hit with [ distance myself < 1 ]
-     ;; ask hit-node [
-     ;;   create-link-with first one-of nodes-hit with [ distance myself < 1 ]
-     ;; ]
-    ;; ]
-  ;;]
+    if any? nodes with [ distance myself < plane-radius ] [  ;;; note could be more than one
+      let nearby-nodes nodes with [(distance myself < plane-radius) and  (not dead?)  and (not quarantine?)]
+      ask nearby-nodes [
+        output-print (word "plane hit node " who " with dead " dead? " and quarantine " quarantine?)
+        ;; for all nearby-nodes we now need to link them all nodes in nodes-hit
+        ;; do not link
+
+        ;foreach nodes-hit [ n ->
+      ]
+
+    ]
+  ]
 end
 
 
@@ -356,7 +358,7 @@ max-recovery-time
 max-recovery-time
 0.0
 40
-21.0
+28.0
 1
 1
 days
@@ -371,7 +373,7 @@ reproduction
 reproduction
 0.0
 100
-20.0
+24.0
 1
 1
 %
@@ -471,7 +473,7 @@ initial-outbreak-size
 initial-outbreak-size
 1
 population
-20.0
+81.0
 1
 1
 NIL
@@ -486,7 +488,7 @@ average-degree
 average-degree
 1
 population - 1
-6.0
+3.0
 1
 1
 NIL
@@ -554,7 +556,7 @@ spreader-frequency
 spreader-frequency
 0
 100
-20.0
+40.0
 1
 1
 %
@@ -684,7 +686,7 @@ plane-frequency
 plane-frequency
 0
 20
-10.0
+5.0
 5
 1
 NIL
