@@ -218,12 +218,13 @@ end
 ;; DRESSLAR
 
 to maybe-spawn-plane
-  let frequency_damper 10
+  let frequency_damper 2
   let wall-size max-pxcor
 
   ;; check plane-frequency and roll 2d20 to go under its inverse. we don't want planes all the time
-  let this_roll ((random 20) + 1) + frequency_damper
-  if this_roll < plane-frequency [
+  let this-roll ((random 20) + 1) * frequency_damper
+  output-print(word "rolled " this-roll " vs " plane-frequency)
+  if this-roll < plane-frequency [
     let wall (random 4)  ;;; upper right lower left
     let x 0
     let y 0
@@ -239,28 +240,28 @@ to maybe-spawn-plane
     wall = 1 [   ;; right
       set y random-ycor
       set x max-pxcor
-      set heading 270 + (random 45) - 22.5 ;;; face opposite the right wall
+      set init-heading 270 + (random 45) - 22.5 ;;; face opposite the right wall
     ]
     wall = 2 [   ;; lower
       set x random-xcor
       set y min-pycor
-      set heading 0 + (random 45) - 22.5 ;;; face opposite the bottom wall
+      set init-heading 0 + (random 45) - 22.5 ;;; face opposite the bottom wall
     ]
     wall = 3 [   ;; left
       set y random-ycor
       set x min-pxcor
-      set heading 90 + (random 45) - 22.5 ;;; face opposite the left wall
+      set init-heading 90 + (random 45) - 22.5 ;;; face opposite the left wall
     ]
    )
 
-   ;;hatch-planes 1 [
-    ;;  set shape "plane"
-    ;;  setxy x y
-    ;;  set heading heading
-    ;;  set size 1.5
-    ;;  set nodes-hit []
-    ;;  set airspeed 1
-   ;; ]
+   create-planes 1 [
+     set shape "airplane"
+     setxy x y
+     set heading init-heading
+     set size 1.5
+     set nodes-hit []
+     set airspeed 1
+   ]
   ]
 
 
@@ -670,7 +671,7 @@ SWITCH
 577
 planes-on?
 planes-on?
-1
+0
 1
 -1000
 
@@ -703,6 +704,17 @@ plane-radius
 1
 NIL
 HORIZONTAL
+
+MONITOR
+935
+475
+992
+520
+planes
+count planes
+17
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
