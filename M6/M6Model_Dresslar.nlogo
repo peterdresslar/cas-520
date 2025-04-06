@@ -282,17 +282,40 @@ to move-planes
 
 
     if any? nodes with [ distance myself < plane-radius ] [  ;;; note could be more than one
-      let nearby-nodes nodes with [(distance myself < plane-radius) and  (not dead?)  and (not quarantine?)]
-      ask nearby-nodes [
+
+      ;; we need to now work with our nodes list from our *plane* but we are linking *nodes*
+      ;; unfortunately we need to temporalize nodes-list
+      let this-here-current-nodes-list nodes-hit
+      let has-nodes? (not empty? this-here-current-nodes-list )
+
+      let nearby-nodes nodes with [(distance myself < plane-radius) and  (not dead?) and (not quarantine?)]
+      ask nearby-nodes [  ;; implicit, for each nearby-node
         output-print (word "plane hit node " who " with dead " dead? " and quarantine " quarantine?)
         ;; for all nearby-nodes we now need to link them all nodes in nodes-hit
-        ;; do not link
-
-        ;foreach nodes-hit [ n ->
+        if has-nodes? [
+          foreach this-here-current-nodes-list [ n ->
+            ;; if n is this nearby-node, do not link
+            if n != who [
+              ;; if n is already in nearby-node link-neighbors, do not link
+              if not member? n [who] of link-neighbors [
+                ask node n [
+                    create-link-with myself   ;; current node to the node n
+                ]
+              ]
+            ]
+          ]
+        ]
+        ;; even if has-nodes? is false we still need to add the nearby-node to this-here-etcetera
+        let this-id who  ;; this node
+        ask myself [     ;; this plane
+          if not member? this-id nodes-hit [  ;;# dont repeatedly add to nodes-hit, could happen due to radius.
+            set nodes-hit lput this-id nodes-hit
+          ]
+        ]
       ]
-
     ]
   ]
+
 end
 
 
