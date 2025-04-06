@@ -158,11 +158,11 @@ def process_results(results_filename: str, runs_per_node: int, max_ticks: int):
     row_count = len(df)
     node_count = row_count // runs_per_node
 
+    very_interesting_results = []
+    interesting_results = []
+
     for node in range(node_count):
         # a node is one set of params
-        very_interesting_results = []
-        interesting_results = []
-
         node_rows = [df.iloc[node * runs_per_node + r] for r in range(runs_per_node)]  # grab the rows for this "node"
 
         # "name" our row
@@ -186,20 +186,20 @@ def process_results(results_filename: str, runs_per_node: int, max_ticks: int):
 
         # now we just check our runs
         for row in node_rows:
-            print(f"Processing node {node}, run {row['run_number']} with params {params} and ticks {row['ticks']}x")
+            # print(f"Processing node {node}, run {row['run_number']} with params {params} and ticks {row['ticks']}x")
 
-            print(f" altruists: {row['altruists']}, selfish: {row['selfish']}, voids: {row['void']}")
+            # print(f" altruists: {row['altruists']}, selfish: {row['selfish']}, voids: {row['void']}")
             int_ticks = int(row["ticks"])
             if int_ticks == max_ticks:
                 ticks_outcomes += 1
             if row["altruists"] == 0.0:
-                print(f" altruists died")
+                # print(f" altruists died")
                 altruists_died_outcomes += 1
             if row["selfish"] == 0.0:
-                print(f" selfish died")
+                # print(f" selfish died")
                 selfish_died_outcomes += 1
             if row["void"] == 0.0:
-                print(f" voids died")
+                # print(f" voids died")
                 voids_died_outcomes += 1
 
             # okay, this is fun, now we get to say what is interesting.
@@ -217,11 +217,10 @@ def process_results(results_filename: str, runs_per_node: int, max_ticks: int):
             very_interesting_reasons.append("high variability in altruists_died_outcomes")
         if 3 < selfish_died_outcomes < runs_per_node - 3:
             very_interesting_reasons.append("high variability in selfish_died_outcomes")
-        if 3 < voids_died_outcomes < runs_per_node - 3:
-            very_interesting_reasons.append("high variability in voids_died_outcomes")
 
         if len(very_interesting_reasons) > 0:
-            print(f"Very interesting results for node {node}: {very_interesting_reasons}")
+            # print(f"**Very interesting results for node {node}: {very_interesting_reasons}")
+            # print(f"node params: cost: {params['cost_of_altruism']}, benefit: {params['benefit_from_altruism']}, disease: {params['disease']}, harshness: {params['harshness']}")
             very_interesting_results.append(
                 {
                     "params": params,
@@ -242,14 +241,16 @@ def process_results(results_filename: str, runs_per_node: int, max_ticks: int):
             interesting_reasons.append("variable altruists_died_outcomes")
         if 0 < selfish_died_outcomes < runs_per_node:
             interesting_reasons.append("variable selfish_died_outcomes")
-        if 0 < voids_died_outcomes < runs_per_node:
-            interesting_reasons.append("variable voids_died_outcomes")
 
         if len(interesting_reasons) > 0:
             print(f"Interesting results for node {node}: {interesting_reasons}")
+            print(f"node params: cost: {params['cost_of_altruism']}, benefit: {params['benefit_from_altruism']}, disease: {params['disease']}, harshness: {params['harshness']}")
             interesting_results.append(
                 {"params": params, "interesting_reasons": interesting_reasons}
             )
+
+    # print(f"Very interesting results: {len(very_interesting_results)}")
+    # print(f"Interesting results: {len(interesting_results)}")
 
     # write all interesting results to one file. can just be text-y
     with open("interesting_results.txt", "w") as f:
