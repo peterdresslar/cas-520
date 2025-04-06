@@ -133,12 +133,33 @@ def do_one_altruism_run(
     return results
 
 
+def convert_sobel_exp_results(results_file_path: str, problem: dict):
+     # Load the processed statistics file
+    stats_file = f"{results_file_path.replace('.csv', '')}_statistics.csv"
+    stats_df = pd.read_csv(stats_file)
+    
+    # Create return dictionary with Y values for each output
+    results = {
+        "results_file": results_file_path,
+        "stats_file": stats_file
+    }
+    
+    # Add Y values for each output specified in the problem
+    for output in problem.get("outputs", ["altruists_mean"]):
+        if output in stats_df.columns:
+            results[output] = stats_df[output].values
+        else:
+            print(f"Warning: Output '{output}' not found in results")
+            
+    return results
+
 def run_altruism_experiment_sobol(
     model: str,
     experiment_name: str,
     max_ticks: int,
     runs_per_node: int,
     param_values: list[list[float]],
+    problem: dict,
 ):
     # Fixed parameters
     altruistic_probability = 0.26
@@ -155,7 +176,7 @@ def run_altruism_experiment_sobol(
     sp_list = [selfish_probability] * len(cost_values)
 
     # Run experiment using existing function
-    run_altruism_experiment(
+    results_file_path =run_altruism_experiment(
         model=model,
         experiment_name=experiment_name,
         max_ticks=max_ticks,
@@ -168,6 +189,7 @@ def run_altruism_experiment_sobol(
         harshness_range=harshness_values
     )
 
+    return results_file_path
 
 # Save checkpoint of which combinations we've completed
 def save_experiment_checkpoint(completed_params):
@@ -487,6 +509,8 @@ def run_altruism_experiment(
         json.dump(completed_runs, f)
 
     print(f"{runs_completed} total runs")
+
+    return results_file
 
 
 def convert_netlogo_question_param(param: str):
