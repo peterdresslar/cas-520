@@ -27,13 +27,6 @@ nodes-own
 planes-own
 [
   airspeed
-  nodes-hit
-]
-
-globals
-[
-  links-per-node
-  network-density
 ]
 
 
@@ -42,8 +35,6 @@ globals
 ; model setup routines
 to setup
   clear-all
-  set links-per-node 0
-  set network-density 0
 
   ask patches [ set pcolor sky + 4 ]
   setup-nodes
@@ -97,8 +88,8 @@ end
 to go
   if all? nodes [not infected?]
     [ stop ]
-  if planes-on? [
-    maybe-spawn-plane
+  if planes? [
+    spawn-planes
     move-planes
   ]
   update-timers
@@ -107,7 +98,6 @@ to go
   recover
   leave-quarantine
   update-links
-  update-globals
   tick
 end
 
@@ -221,131 +211,58 @@ to update-links
     [  ask my-links [ set color gray + 2 ]
     ]
   ]
-
 end
 
 ;; DRESSLAR
 
-to-report links-per-node
-  report count links / count nodes with [not dead?]
-end
-
-to-report network-density
-  let active-nodes count nodes with [not dead?]
-  let max-possible-links (active-nodes * (active-nodes - 1) / 2)
-  ifelse max-possible-links > 0
-    [ report count links / max-possible-links ]
-    [ report 0 ]
-end
-
-to maybe-spawn-plane
-  let frequency-damper 4
-  let wall-size max-pxcor
+to spawn-planes
+  let frequency_damper
+  set frequency_damper 10
+  let wall-size
+  set wall-size max-pxcor + 1 + max-pxcor
+  let wall
 
   ;; check plane-frequency and roll 2d20 to go under its inverse. we don't want planes all the time
-  let this-roll (random 20) * frequency-damper  ;; 0 is always a critical hit
-  ;; output-print(word "rolled " this-roll " vs " plane-frequency)
-  if this-roll < plane-frequency [
-    let wall (random 4)  ;;; upper right lower left
-    let x 0
-    let y 0
-    let init-heading 0
-
-  (ifelse
-    wall = 0 [   ;; upper
-      set x random-xcor
-      set y max-pycor
-      set init-heading 180 + (random 45) - 22.5 ;;; face opposite the top wall, use cone 45 (with middle)
+  let this_roll
+  set this_roll ((random 20) + 1) + frequency_damper)
+  if this_roll < frequency [
+    set wall ((random 4) + 1)  ;;; upper right lower left
+    let x
+    let y
+    (ifelse
+      wall = 0 [   ;; upper
+        set x (20 - (random wall-size))
+        set y pymx
+        set heading
     ]
     wall = 1 [   ;; right
-      set y random-ycor
-      set x max-pxcor
-      set init-heading 270 + (random 45) - 22.5 ;;; face opposite the right wall
+        set y (20 - (random wall-size))
+        set x px-max
     ]
     wall = 2 [   ;; lower
-      set x random-xcor
-      set y min-pycor
-      set init-heading 0 + (random 45) - 22.5 ;;; face opposite the bottom wall
+        set x (20 - (random wall-size))
+        set y py-min
     ]
     wall = 3 [   ;; left
-      set y random-ycor
-      set x min-pxcor
-      set init-heading 90 + (random 45) - 22.5 ;;; face opposite the left wall
+        set y (20 - (random wall-size))
+        set x px-min
     ]
-   )
+      )
+    create-planes 1 [
+      set shape "plane"
+      move-to x y
 
-   create-planes 1 [
-     set shape "airplane"
-     setxy x y
-     set heading init-heading
-     set size 1.5
-     set nodes-hit []
-     set airspeed 1
-   ]
-  ]
+    ]
 
 
-  ;;]
+
+
 
 end
 
 to move-planes
-  ;; okay, we need to move all the planes
-  ;; if they hit the edge they are removed
-  ;; if they hit any node, that node is linked to all the other nodes the plane has hit
-  ask planes [
-    fd airspeed
-    if (xcor > max-pxcor) or (xcor < min-pxcor) or (ycor > max-pycor) or (ycor < min-pycor) [  ;; right left top bottom, i think
-      die
-    ]
-
-    ;; check for nearby node turtles within plane-radius
-
-
-    if any? nodes with [ distance myself < plane-radius ] [  ;;; note could be more than one
-
-      ;; we need to now work with our nodes list from our *plane* but we are linking *nodes*
-      ;; unfortunately we need to temporalize nodes-list
-      let this-here-current-nodes-list nodes-hit
-      let has-nodes? (not empty? this-here-current-nodes-list )
-
-      let nearby-nodes nodes with [(distance myself < plane-radius) and  (not dead?) and (not quarantine?)]
-      ask nearby-nodes [  ;; implicit, for each nearby-node
-       ;; output-print (word "plane hit node " who " with dead " dead? " and quarantine " quarantine?)
-        ;; for all nearby-nodes we now need to link them all nodes in nodes-hit
-        if has-nodes? [
-          foreach this-here-current-nodes-list [ n ->
-            ;; if n is this nearby-node, do not link
-            if n != who [
-              ;; if n is already in nearby-node link-neighbors, do not link
-              if not member? n [who] of link-neighbors [
-                ask node n [
-                  create-link-with myself [ ;; current node to the node n
-                    output-print (word "linked " [who] of end1 " and " [who] of end2)
-                    ;; we can't call update-links here i don't think, so we need to re-build here
-                    set color black
-                    if [resistant? or dead? or quarantine?] of end1 or [resistant? or dead? or quarantine?] of end2 [
-                      set color gray + 2
-                    ]
-                  ]
-                ]
-              ]
-            ]
-          ]
-        ]
-        ;; even if has-nodes? is false we still need to add the nearby-node to this-here-etcetera
-        let this-id who  ;; this node
-        ask myself [     ;; this plane
-          if not member? this-id nodes-hit [  ;;# dont repeatedly add to nodes-hit, could happen due to radius.
-            set nodes-hit lput this-id nodes-hit
-          ]
-        ]
-      ]
-    ]
-  ]
 
 end
-
 
 
 
@@ -395,7 +312,7 @@ quarantine-time
 quarantine-time
 0.0
 40
-4.0
+14.0
 1
 1
 days
@@ -410,7 +327,7 @@ max-recovery-time
 max-recovery-time
 0.0
 40
-28.0
+21.0
 1
 1
 days
@@ -425,7 +342,7 @@ reproduction
 reproduction
 0.0
 100
-24.0
+20.0
 1
 1
 %
@@ -481,10 +398,10 @@ true
 true
 "" ""
 PENS
-"susceptible" 1.0 0 -13345367 true "" "plot (count nodes with [not infected? and not resistant? and not dead?]) / (count nodes) * 100"
-"infected" 1.0 0 -2674135 true "" "plot (count nodes with [ infected?] ) / (count nodes) * 100"
-"dead" 1.0 0 -16777216 true "" "plot (count nodes with [ dead? ]) / (count nodes) * 100"
-"resistant" 1.0 0 -7500403 true "" "plot (count nodes with [ resistant? ]) / (count nodes) * 100"
+"susceptible" 1.0 0 -13345367 true "" "plot (count turtles with [not infected? and not resistant? and not dead?]) / (count turtles) * 100"
+"infected" 1.0 0 -2674135 true "" "plot (count turtles with [ infected?] ) / (count turtles) * 100"
+"dead" 1.0 0 -16777216 true "" "plot (count turtles with [ dead? ]) / (count turtles) * 100"
+"resistant" 1.0 0 -7500403 true "" "plot (count turtles with [ resistant? ]) / (count turtles) * 100"
 
 SLIDER
 25
@@ -525,7 +442,7 @@ initial-outbreak-size
 initial-outbreak-size
 1
 population
-36.0
+20.0
 1
 1
 NIL
@@ -540,7 +457,7 @@ average-degree
 average-degree
 1
 population - 1
-3.0
+6.0
 1
 1
 NIL
@@ -608,7 +525,7 @@ spreader-frequency
 spreader-frequency
 0
 100
-40.0
+20.0
 1
 1
 %
@@ -635,7 +552,7 @@ MONITOR
 859
 410
 % susceptible
-count nodes with [ not resistant? and not infected? and not dead? ] / count nodes * 100
+count turtles with [ not resistant? and not infected? and not dead? ] / count turtles * 100
 0
 1
 12
@@ -646,7 +563,7 @@ MONITOR
 947
 410
 % infected
-count nodes with [ infected?]  / count nodes * 100
+count turtles with [ infected?]  / count turtles * 100
 0
 1
 12
@@ -657,7 +574,7 @@ MONITOR
 1028
 410
  resistant
-count nodes with [ resistant? ]  / count nodes * 100
+count turtles with [ resistant? ]  / count turtles * 100
 0
 1
 12
@@ -668,7 +585,7 @@ MONITOR
 1098
 410
 % dead
-count nodes with [ dead? ]  / (count nodes) * 100
+count turtles with [ dead? ]  / (count turtles) * 100
 0
 1
 12
@@ -719,13 +636,13 @@ Interventions
 1
 
 SWITCH
-271
+297
 544
-397
+400
 577
-planes-on?
-planes-on?
-0
+planes?
+planes?
+1
 1
 -1000
 
@@ -737,9 +654,9 @@ SLIDER
 plane-frequency
 plane-frequency
 0
-40
+20
 20.0
-1
+5
 1
 NIL
 HORIZONTAL
@@ -758,17 +675,6 @@ plane-radius
 1
 NIL
 HORIZONTAL
-
-MONITOR
-935
-475
-992
-520
-planes
-count planes
-17
-1
-11
 
 @#$#@#$#@
 ## WHAT IS IT?
