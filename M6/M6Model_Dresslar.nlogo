@@ -89,9 +89,9 @@ end
 to go
   if all? nodes [not infected?]
     [ stop ]
-  if planes? [
+  if planes-on? [
     maybe-spawn-plane
-    move-planes
+    ;; move-planes
   ]
   update-timers
   spread-virus
@@ -212,53 +212,59 @@ to update-links
     [  ask my-links [ set color gray + 2 ]
     ]
   ]
+
 end
 
 ;; DRESSLAR
 
 to maybe-spawn-plane
   let frequency_damper 10
-  let wall-size max-pxcor 
+  let wall-size max-pxcor
 
   ;; check plane-frequency and roll 2d20 to go under its inverse. we don't want planes all the time
-  let this_roll ((random 20) + 1) + frequency_damper)
-  if this_roll < frequency [
+  let this_roll ((random 20) + 1) + frequency_damper
+  if this_roll < plane-frequency [
     let wall (random 4)  ;;; upper right lower left
     let x 0
     let y 0
-    let heading 0
+    let init-heading 0
 
-    (ifelse
-      wall = 0 [   ;; upper
-        set x random-xcor
-        set y max-pycor
-        set heading 180 + (random 45) - 22.5 ;;; face opposite the top wall
+
+  (ifelse
+    wall = 0 [   ;; upper
+      set x random-xcor
+      set y max-pycor
+      set init-heading 180 + (random 45) - 22.5 ;;; face opposite the top wall, use cone 45 (with middle)
     ]
     wall = 1 [   ;; right
-        set y random-ycor
-        set x max-pxcor
-        set heading 270 + (random 45) - 22.5 ;;; face opposite the right wall
+      set y random-ycor
+      set x max-pxcor
+      set heading 270 + (random 45) - 22.5 ;;; face opposite the right wall
     ]
     wall = 2 [   ;; lower
-        set x random-xcor
-        set y min-pycor
-        set heading 0 + (random 45) - 22.5 ;;; face opposite the bottom wall
+      set x random-xcor
+      set y min-pycor
+      set heading 0 + (random 45) - 22.5 ;;; face opposite the bottom wall
     ]
     wall = 3 [   ;; left
-        set y random-ycor
-        set x min-pxcor
-        set heading 90 + (random 45) - 22.5 ;;; face opposite the left wall
+      set y random-ycor
+      set x min-pxcor
+      set heading 90 + (random 45) - 22.5 ;;; face opposite the left wall
     ]
-      )
-    create-planes 1 [
-      set shape "plane"
-      setxy x y
-      set heading heading
-      set size 1.5
-      set nodes-hit []
-      set airspeed 1
-    ]
+   )
+
+   ;;hatch-planes 1 [
+    ;;  set shape "plane"
+    ;;  setxy x y
+    ;;  set heading heading
+    ;;  set size 1.5
+    ;;  set nodes-hit []
+    ;;  set airspeed 1
+   ;; ]
   ]
+
+
+  ;;]
 
 end
 
@@ -266,20 +272,24 @@ to move-planes
   ;; okay, we need to move all the planes
   ;; if they hit the edge they are removed
   ;; if they hit any node, that node is linked to all the other nodes the plane has hit
-  ask planes [
-    fd airspeed
-    ifelse xcor > max-pxcor or xcor < min-pxcor or ycor > max-pycor or ycor < min-pycor [
-      die
-    ]
-    ifelse any? nodes-hit with [ distance myself < 1 ] [
-      output-print(word "Plane hit node" first one-of nodes-hit with [ distance myself < 1 ])
-      output-print(word "Plane nodes-hit now " nodes-hit)
-      let hit-node first one-of nodes-hit with [ distance myself < 1 ]
-      ask hit-node [
-        create-link-with first one-of nodes-hit with [ distance myself < 1 ]
-      ]
-    ]
-  ]
+  ;;ask planes [
+   ;; fd airspeed
+    ;; if (xcor > max-pxcor) or (xcor < min-pxcor) or (ycor > max-pycor) or (ycor < min-pycor) [  ;; right left top bottom, i think
+    ;;  die
+    ;;]
+
+    ;; check for nearby node turtles within plane-radius
+
+
+    ;;if any? nodes-hit with [ distance myself < 1 ] [
+     ;; output-print(word "Plane hit node" first one-of nodes-hit with [ distance myself < 1 ])
+    ;;  output-print(word "Plane nodes-hit now " nodes-hit)
+    ;;  let hit-node first one-of nodes-hit with [ distance myself < 1 ]
+     ;; ask hit-node [
+     ;;   create-link-with first one-of nodes-hit with [ distance myself < 1 ]
+     ;; ]
+    ;; ]
+  ;;]
 end
 
 
@@ -654,12 +664,12 @@ Interventions
 1
 
 SWITCH
-297
+271
 544
-400
+397
 577
-planes?
-planes?
+planes-on?
+planes-on?
 1
 1
 -1000
@@ -673,7 +683,7 @@ plane-frequency
 plane-frequency
 0
 20
-20.0
+10.0
 5
 1
 NIL
