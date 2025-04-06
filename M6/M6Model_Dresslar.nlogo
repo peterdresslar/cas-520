@@ -30,20 +30,11 @@ planes-own
   nodes-hit
 ]
 
-globals
-[
-  links-per-node
-  network-density
-]
-
-
 
 
 ; model setup routines
 to setup
   clear-all
-  set links-per-node 0
-  set network-density 0
 
   ask patches [ set pcolor sky + 4 ]
   setup-nodes
@@ -107,7 +98,6 @@ to go
   recover
   leave-quarantine
   update-links
-  update-globals
   tick
 end
 
@@ -321,7 +311,7 @@ to move-planes
               if not member? n [who] of link-neighbors [
                 ask node n [
                   create-link-with myself [ ;; current node to the node n
-                    output-print (word "linked " [who] of end1 " and " [who] of end2)
+                    ;; output-print (word "linked " [who] of end1 " and " [who] of end2)
                     ;; we can't call update-links here i don't think, so we need to re-build here
                     set color black
                     if [resistant? or dead? or quarantine?] of end1 or [resistant? or dead? or quarantine?] of end2 [
@@ -395,7 +385,7 @@ quarantine-time
 quarantine-time
 0.0
 40
-4.0
+14.0
 1
 1
 days
@@ -510,7 +500,7 @@ test-frequency
 test-frequency
 1
 20
-14.0
+20.0
 1
 1
 days
@@ -525,7 +515,7 @@ initial-outbreak-size
 initial-outbreak-size
 1
 population
-36.0
+32.0
 1
 1
 NIL
@@ -540,7 +530,7 @@ average-degree
 average-degree
 1
 population - 1
-3.0
+2.0
 1
 1
 NIL
@@ -725,7 +715,7 @@ SWITCH
 577
 planes-on?
 planes-on?
-0
+1
 1
 -1000
 
@@ -747,7 +737,7 @@ HORIZONTAL
 SLIDER
 585
 544
-757
+729
 577
 plane-radius
 plane-radius
@@ -760,15 +750,34 @@ NIL
 HORIZONTAL
 
 MONITOR
-935
-475
-992
-520
+1137
+364
+1194
+409
 planes
 count planes
 17
 1
 11
+
+PLOT
+758
+425
+1195
+659
+plot 1
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"nw-density" 1.0 0 -16777216 true "" "plot network-density"
+"links-per-node" 1.0 0 -7500403 true "" "plot links-per-node"
 
 @#$#@#$#@
 ## WHAT IS IT?

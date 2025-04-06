@@ -12,3 +12,4 @@ __pycache__/*
 *.pyo.*
 *.pyd
 *.pyd.*
+utils/__pycache__/pynetlogo_utils.cpython-312.pyc
