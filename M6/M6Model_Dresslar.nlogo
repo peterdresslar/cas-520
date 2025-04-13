@@ -772,7 +772,7 @@ PLOT
 425
 1195
 545
-plot 1
+Links Per Node
 NIL
 NIL
 0.0
@@ -780,11 +780,28 @@ NIL
 0.0
 10.0
 true
-true
+false
 "" ""
 PENS
-"mean-path-length" 1.0 0 -11053225 true "" "plot mean-path-length"
 "links-per-node" 1.0 0 -10899396 true "" "plot links-per-node"
+
+PLOT
+758
+554
+1198
+712
+Degree Distribution
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"Degree Distribution" 1.0 1 -16777216 true "" "let max-degree max [count link-neighbors] of nodes\nplot-pen-reset  ;; erase what we plotted before\nset-plot-x-range 1 (max-degree + 1)  ;; + 1 to make room for the width of the last bar\nhistogram [count link-neighbors] of nodes\n "
 
 @#$#@#$#@
 ## WHAT IS IT?
