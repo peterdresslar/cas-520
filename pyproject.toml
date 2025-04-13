@@ -5,6 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "pingouin>=0.5.5",
     "salib>=1.5.1",
     "scikit-learn>=1.6.1",
 ]
