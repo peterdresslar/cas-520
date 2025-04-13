@@ -1,3 +1,5 @@
+extensions [nw]
+
 ;Virus Transmission with Super-spreaders
 ;J M Applegate, 2020
 
@@ -218,6 +220,11 @@ end
 
 to-report links-per-node
   report count links / count nodes with [not dead?]
+end
+
+to-report mean-path-length
+  ;; print nw:mean-path-length
+  report nw:mean-path-length
 end
 
 to-report network-density
@@ -715,7 +722,7 @@ SWITCH
 577
 planes-on?
 planes-on?
-1
+0
 1
 -1000
 
@@ -764,7 +771,7 @@ PLOT
 758
 425
 1195
-659
+545
 plot 1
 NIL
 NIL
@@ -776,8 +783,8 @@ true
 true
 "" ""
 PENS
-"nw-density" 1.0 0 -16777216 true "" "plot network-density"
-"links-per-node" 1.0 0 -7500403 true "" "plot links-per-node"
+"mean-path-length" 1.0 0 -11053225 true "" "plot mean-path-length"
+"links-per-node" 1.0 0 -10899396 true "" "plot links-per-node"
 
 @#$#@#$#@
 ## WHAT IS IT?
