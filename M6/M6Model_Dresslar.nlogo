@@ -422,7 +422,7 @@ reproduction
 reproduction
 0.0
 100
-24.0
+20.0
 1
 1
 %
@@ -592,7 +592,7 @@ SWITCH
 298
 heterogenous
 heterogenous
-0
+1
 1
 -1000
 
@@ -1154,6 +1154,65 @@ NetLogo 6.4.0
     </enumeratedValueSet>
     <enumeratedValueSet variable="virus-spread-chance">
       <value value="40"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="Planes" repetitions="100" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go</go>
+    <metric>count nodes with [ not resistant? and not infected? and not dead? ]</metric>
+    <metric>count nodes with [ infected? ]</metric>
+    <metric>count nodes with [ resistant? ]</metric>
+    <metric>count nodes with [ dead? ]</metric>
+    <metric>count nodes with [ quarantine? ]</metric>
+    <enumeratedValueSet variable="test-frequency">
+      <value value="2"/>
+      <value value="7"/>
+      <value value="14"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="initial-outbreak-size">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="average-degree">
+      <value value="3"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="quarantine-time">
+      <value value="0"/>
+      <value value="7"/>
+      <value value="14"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="morbidity">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-recovery-time">
+      <value value="21"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="spreader-reproduction">
+      <value value="90"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="spreader-frequency">
+      <value value="10"/>
+      <value value="40"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="non-spreader-reproduction">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="population">
+      <value value="300"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="reproduction">
+      <value value="20"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="planes-on?">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="plane-frequency">
+      <value value="5"/>
+      <value value="15"/>
+      <value value="25"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="plane-radius">
+      <value value="1"/>
+      <value value="2"/>
     </enumeratedValueSet>
   </experiment>
 </experiments>

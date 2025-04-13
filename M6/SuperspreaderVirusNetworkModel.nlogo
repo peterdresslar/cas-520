@@ -8,11 +8,7 @@
 ;test-frequency, quarantine-time
 
 ; individual or node state variables
-
-breed [nodes node]
-breed [planes plane]
-
-nodes-own
+turtles-own
 [
   infected?           ;; if true, the turtle is infectious
   resistant?          ;; if true, the turtle can be infected
@@ -24,25 +20,16 @@ nodes-own
   quarantine-timer    ;; number of ticks since turtle entered quarantine
 ]
 
-planes-own
-[
-  airspeed
-]
-
-
-
-
 ; model setup routines
 to setup
   clear-all
-
   ask patches [ set pcolor sky + 4 ]
   setup-nodes
   setup-spatially-clustered-network
-  ask n-of initial-outbreak-size nodes
+  ask n-of initial-outbreak-size turtles
     [ become-infected ]
   if heterogenous
-    [ ask n-of floor( spreader-frequency / 100 * population ) nodes
+    [ ask n-of floor( spreader-frequency / 100 * population ) turtles
       [ set spreader? true
         set size 1.5]
   ]
@@ -51,8 +38,8 @@ to setup
 end
 
 to setup-nodes
-  set-default-shape nodes "circle"
-  create-nodes population
+  set-default-shape turtles "circle"
+  create-turtles population
   [
     ; for visual reasons, we don't put any nodes *too* close to the edges
     setxy (random-xcor * 0.95) (random-ycor * 0.95)
@@ -70,9 +57,9 @@ to setup-spatially-clustered-network
   let num-links (average-degree * population) / 2
   while [count links < num-links ]
   [
-    ask one-of nodes
+    ask one-of turtles
     [
-      let choice (min-one-of (other nodes with [not link-neighbor? myself])
+      let choice (min-one-of (other turtles with [not link-neighbor? myself])
                    [distance myself])
       if choice != nobody [ create-link-with choice ]
     ]
@@ -80,18 +67,14 @@ to setup-spatially-clustered-network
   ; make the network look a little prettier
   repeat 10
   [
-    layout-spring nodes links 0.3 (world-width / (sqrt population)) 1
+    layout-spring turtles links 0.3 (world-width / (sqrt population)) 1
   ]
 end
 
 ;simulation routines
 to go
-  if all? nodes [not infected?]
+  if all? turtles [not infected?]
     [ stop ]
-  if planes? [
-    spawn-planes
-    move-planes
-  ]
   update-timers
   spread-virus
   quarantine
@@ -118,7 +101,7 @@ end
 
 ;recovery, test and quarantine timers are updated
 to update-timers
-  ask nodes [
+  ask turtles [
     set test-timer test-timer + 1
     if test-timer >= test-frequency
       [ set test-timer 0 ]
@@ -138,20 +121,20 @@ end
 ;infected individuals spread virus, either through homogenous or heterogenous transmission
 to spread-virus
   ifelse heterogenous
-  [ ask nodes with [ infected? and not quarantine? and spreader? ]
+  [ ask turtles with [ infected? and not quarantine? and spreader? ]
     [ ask link-neighbors with [ not resistant? and not quarantine? and not infected? and not dead? ]
         [ if random-float 100 < spreader-reproduction
             [ become-infected ]
         ]
     ]
-    ask nodes with [ infected? and not quarantine? and not spreader? ]
+    ask turtles with [ infected? and not quarantine? and not spreader? ]
     [ ask link-neighbors with [ not resistant? and not quarantine? and not infected? and not dead? ]
         [ if random-float 100 < non-spreader-reproduction
             [ become-infected ]
         ]
     ]
   ]
-  [ ask nodes with [ infected? and not quarantine? ]
+  [ ask turtles with [ infected? and not quarantine? ]
     [ ask link-neighbors with [ not resistant? and not quarantine? and not infected? and not dead? ]
      [ if random-float 100 < reproduction
             [ become-infected ]
@@ -162,7 +145,7 @@ end
 
 ;positive test individual is quarantined
 to quarantine
-  ask nodes with [ infected? and test-timer = 0 ]
+  ask turtles with [ infected? and test-timer = 0 ]
   [ set quarantine? true
     set quarantine-timer 1
     set color pink
@@ -171,7 +154,7 @@ end
 
 ;individual leaves quarantine
 to leave-quarantine
-  ask nodes with [ quarantine? and quarantine-timer = 0 ]
+  ask turtles with [ quarantine? and quarantine-timer = 0 ]
   [ set quarantine? false
     ifelse infected?
       [ set color red - 1
@@ -182,7 +165,7 @@ end
 
 ; infected individual recovers
 to recover
-  ask nodes with [ infected? and infected-timer = 0 ]
+  ask turtles with [ infected? and infected-timer = 0 ]
     [
       ifelse random-float 100 < morbidity
       [ do-death ]
@@ -204,68 +187,14 @@ end
 
 ;links to resistant, quarantined or dead individuals are updated
 to update-links
-  ask nodes [
+  ask turtles [
     ask my-links [ set color black ]
   ]
-  ask nodes [ if resistant? or dead? or quarantine?
+  ask turtles [ if resistant? or dead? or quarantine?
     [  ask my-links [ set color gray + 2 ]
     ]
   ]
 end
-
-;; DRESSLAR
-
-to spawn-planes
-  let frequency_damper
-  set frequency_damper 10
-  let wall-size
-  set wall-size max-pxcor + 1 + max-pxcor
-  let wall
-
-  ;; check plane-frequency and roll 2d20 to go under its inverse. we don't want planes all the time
-  let this_roll
-  set this_roll ((random 20) + 1) + frequency_damper)
-  if this_roll < frequency [
-    set wall ((random 4) + 1)  ;;; upper right lower left
-    let x
-    let y
-    (ifelse
-      wall = 0 [   ;; upper
-        set x (20 - (random wall-size))
-        set y pymx
-        set heading
-    ]
-    wall = 1 [   ;; right
-        set y (20 - (random wall-size))
-        set x px-max
-    ]
-    wall = 2 [   ;; lower
-        set x (20 - (random wall-size))
-        set y py-min
-    ]
-    wall = 3 [   ;; left
-        set y (20 - (random wall-size))
-        set x px-min
-    ]
-      )
-    create-planes 1 [
-      set shape "plane"
-      move-to x y
-
-    ]
-
-
-
-
-
-end
-
-to move-planes
-
-end
-
-
-
 
 ; copyright J M Applegate, Arizona State University School of Complex Adaptive Systems, 2021
 ; This work is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 License.
@@ -635,47 +564,6 @@ Interventions
 0.0
 1
 
-SWITCH
-297
-544
-400
-577
-planes?
-planes?
-1
-1
--1000
-
-SLIDER
-406
-544
-578
-577
-plane-frequency
-plane-frequency
-0
-20
-20.0
-5
-1
-NIL
-HORIZONTAL
-
-SLIDER
-585
-544
-757
-577
-plane-radius
-plane-radius
-0
-5
-1.0
-1
-1
-NIL
-HORIZONTAL
-
 @#$#@#$#@
 ## WHAT IS IT?
 
@@ -976,7 +864,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.4.0
+NetLogo 6.2.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
