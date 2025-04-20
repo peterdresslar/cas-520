@@ -259,22 +259,22 @@ to reproduce
           if trait = "fission-rate" [  ;; i wanted to use d6 rolls, but these variables are too sensitive!
             let new-rate (fission-rate * (1 + (random-float 0.5) - 0.25))   ;; fission rate is a percentage
             set fission-rate max list 0.75 (min list 2.5 new-rate) ;; donʻt go too far
-            output-print (word "mutated fission-rate" fission-rate)
+            ;; output-print (word "mutated fission-rate" fission-rate)
           ]
           if trait = "farm-dist" [
             let new-dist (farm-dist + random 7 - 3) ;; integer hanging around 2-3-ish
-            set farm-dist max list 1 (min list 25 new-dist)
-            output-print (word "mutated farm-dist" farm-dist)
+            set farm-dist max list 1 (min list 25 new-dist)  ;; watch this ceiling as generations move.
+            ;; output-print (word "mutated farm-dist" farm-dist)
           ]
           if trait = "min-fertility" [
             let new-fert (min-fertility + (random-float 0.3) - 0.15) ;; review this
             set min-fertility max list 0.1 (min list 0.95 new-fert)
-            output-print (word "mutated min-fertility" min-fertility)
+            ;; output-print (word "mutated min-fertility" min-fertility)
           ]
           if trait = "move-threshold" [
             let new-thresh (move-threshold * (1 + (random-float 0.5) - 0.25))
             set move-threshold max list 10 (min list init-energy new-thresh)
-            output-print (word "mutated move-threshold" move-threshold)
+            ;; output-print (word "mutated move-threshold" move-threshold)
           ]
         ]
 
@@ -567,7 +567,7 @@ farm-cost
 farm-cost
 0
 100
-4.0
+5.0
 1
 1
 %
@@ -597,7 +597,7 @@ fertility-loss
 fertility-loss
 0
 100
-19.0
+20.0
 1
 1
 %
@@ -647,7 +647,7 @@ INPUTBOX
 314
 70
 max_cycles
-100000.0
+999999.0
 1
 0
 Number
@@ -848,11 +848,83 @@ weirdness
 weirdness
 0
 100
-50.0
+80.0
 1
 1
 NIL
 HORIZONTAL
+
+PLOT
+1160
+10
+1360
+160
+fission-rate
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "if count households > 0 [plot 100 * mean [fission-rate] of turtles]"
+
+PLOT
+1160
+170
+1360
+320
+farm-dist
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "if count households > 0 [plot mean [farm-dist] of turtles]"
+
+PLOT
+1160
+335
+1360
+485
+min-fertility
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "if count households > 0 [plot 100 * mean [min-fertility] of turtles]"
+
+PLOT
+1160
+495
+1360
+645
+move-threshold
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "if count households > 0 [plot mean [move-threshold] of turtles]"
 
 @#$#@#$#@
 # Farming
@@ -1283,6 +1355,32 @@ NetLogo 6.4.0
     </enumeratedValueSet>
     <enumeratedValueSet variable="move-cost">
       <value value="2"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="Long Evolution Run - Farm Cost Variation" repetitions="10" runMetricsEveryStep="false" runMetricsEveryNSteps="100">
+    <setup>setup</setup>
+    <go>go</go>
+    <timeLimit steps="25000"/>
+
+    <metric>count households</metric>
+    <metric>mean [fission-rate] of households</metric>
+    <metric>mean [farm-dist] of households</metric>
+    <metric>mean [min-fertility] of households</metric>
+    <metric>mean [move-threshold] of households</metric>
+    <metric>mean [vegetation] of patches</metric>
+    <metric>(count patches with [vegetation >= 40]) * 100 / count patches</metric> 
+    
+    <enumeratedValueSet variable="Randos?">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="weirdness">
+      <value value="80"/>
+    </enumeratedValueSet>
+    
+    <enumeratedValueSet variable="farm-cost">  
+      <value value="5"/>
+      <value value="7"/>
+      <value value="8.75"/> 
     </enumeratedValueSet>
   </experiment>
 </experiments>
