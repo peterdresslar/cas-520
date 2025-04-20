@@ -568,7 +568,7 @@ farm-cost
 farm-cost
 0
 100
-5.0
+3.0
 1
 1
 %
@@ -1431,17 +1431,17 @@ NetLogo 6.4.0
       <value value="50"/>
     </enumeratedValueSet>
   </experiment>
-  <experiment name="randotime (copy)" repetitions="1" runMetricsEveryStep="false">
+  <experiment name="randotime_long" repetitions="6" runMetricsEveryStep="false">
     <setup>setup</setup>
     <go>go</go>
-    <timeLimit steps="1"/>
+    <timeLimit steps="250000"/>
     <metric>count households</metric>
     <metric>mean [fission-rate] of households</metric>
     <metric>mean [farm-dist] of households</metric>
     <metric>mean [min-fertility] of households</metric>
     <metric>mean [move-threshold] of households</metric>
     <metric>mean [vegetation] of patches</metric>
-    <runMetricsCondition>ticks mod 500 = 0</runMetricsCondition>
+    <runMetricsCondition>ticks mod 1000 = 0</runMetricsCondition>
     <enumeratedValueSet variable="Randos?">
       <value value="true"/>
     </enumeratedValueSet>
@@ -1450,8 +1450,6 @@ NetLogo 6.4.0
     </enumeratedValueSet>
     <enumeratedValueSet variable="farm-cost">
       <value value="3"/>
-      <value value="5"/>
-      <value value="8"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="fission-energy">
       <value value="150"/>
