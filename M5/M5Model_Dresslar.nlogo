@@ -329,9 +329,16 @@ to regrow-patch
     set farmstead count households-here
 
     ;; restore soil fertility
+    ifelse alt-fert = false [
     ifelse fertility < 1
       [set fertility fertility + restore-rate] ; restore fertility
       [set fertility 1]; don't exceed max fertility
+    ] [
+      if field = 0 and farmstead = 0 and fertility < 1 [  ;; DRESSLAR only restore fertility if the patch is not farmed
+        set fertility fertility + restore-rate
+        if fertility > 1 [ set fertility 1 ] ;  still don't exceed max fertility
+      ]
+    ]
 
     ;; regrow vegetation in non-farmed non-farmstead fields
     if farmstead = 0 and not site and field = 0 [
@@ -613,7 +620,7 @@ fertility-restore
 fertility-restore
 0
 100
-2.0
+0.5
 1
 1
 %
@@ -941,6 +948,28 @@ the-min-fertility
 1
 NIL
 HORIZONTAL
+
+SWITCH
+40
+655
+143
+688
+alt-fert
+alt-fert
+0
+1
+-1000
+
+MONITOR
+560
+600
+617
+645
+fert
+mean [fertility] of patches
+2
+1
+11
 
 @#$#@#$#@
 # Farming
