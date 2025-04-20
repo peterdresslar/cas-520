@@ -1,0 +1,24 @@
+"BehaviorSpace results (NetLogo 6.4.0)","Spreadsheet version 2.0"
+"M5Model_Dresslar.nlogo"
+"randotime (copy)"
+"04/20/2025 10:38:07:830 -1000"
+"min-pxcor","max-pxcor","min-pycor","max-pycor"
+"-50","50","-50","50"
+"[run number]","1","1","1","1","1","1","1","2","2","2","2","2","2","2","3","3","3","3","3","3","3"
+"Randos?","true",,,,,,,"true",,,,,,,"true",,,,,,
+"weirdness","80",,,,,,,"80",,,,,,,"80",,,,,,
+"farm-cost","3",,,,,,,"5",,,,,,,"8",,,,,,
+"fission-energy","150",,,,,,,"150",,,,,,,"150",,,,,,
+"swidden-radius","12",,,,,,,"12",,,,,,,"12",,,,,,
+"the-min-fertility","80",,,,,,,"80",,,,,,,"80",,,,,,
+"move-rate","50",,,,,,,"50",,,,,,,"50",,,,,,
+"[reporter]","[step]","count households","mean [fission-rate] of households","mean [farm-dist] of households","mean [min-fertility] of households","mean [move-threshold] of households","mean [vegetation] of patches","[step]","count households","mean [fission-rate] of households","mean [farm-dist] of households","mean [min-fertility] of households","mean [move-threshold] of households","mean [vegetation] of patches","[step]","count households","mean [fission-rate] of households","mean [farm-dist] of households","mean [min-fertility] of households","mean [move-threshold] of households","mean [vegetation] of patches"
+"[final]","0","2","1.5","12","0.8","50","50","0","2","1.5","12","0.8","50","50","0","2","1.5","12","0.8","50","50"
+"[min]","0","2","1.5","12","0.8","50","50","0","2","1.5","12","0.8","50","50","0","2","1.5","12","0.8","50","50"
+"[max]","0","2","1.5","12","0.8","50","50","0","2","1.5","12","0.8","50","50","0","2","1.5","12","0.8","50","50"
+"[mean]","0","2","1.5","12","0.8","50","50","0","2","1.5","12","0.8","50","50","0","2","1.5","12","0.8","50","50"
+"[total steps]","1","1","1","1","1","1","1","1","1","1","1","1","1","1","1","1","1","1","1","1","1"
+
+"[all run data]","[step]","count households","mean [fission-rate] of households","mean [farm-dist] of households","mean [min-fertility] of households","mean [move-threshold] of households","mean [vegetation] of patches","[step]","count households","mean [fission-rate] of households","mean [farm-dist] of households","mean [min-fertility] of households","mean [move-threshold] of households","mean [vegetation] of patches","[step]","count households","mean [fission-rate] of households","mean [farm-dist] of households","mean [min-fertility] of households","mean [move-threshold] of households","mean [vegetation] of patches"
+,"0","2","1.5","12","0.8","50","50","0","2","1.5","12","0.8","50","50","0","2","1.5","12","0.8","50","50"
+,,,,,,,,,,,,,,,,,,,,,
