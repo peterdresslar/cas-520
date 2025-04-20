@@ -401,7 +401,7 @@ harvest
 harvest
 0
 100
-12.0
+7.0
 1
 1
 %
@@ -416,7 +416,7 @@ fission-energy
 fission-energy
 100
 200
-150.0
+200.0
 1
 1
 %
@@ -483,7 +483,7 @@ init-households
 init-households
 1
 50
-2.0
+3.0
 1
 1
 NIL
@@ -513,7 +513,7 @@ farm-cost
 farm-cost
 0
 100
-3.0
+4.0
 1
 1
 %
@@ -528,7 +528,7 @@ move-cost
 move-cost
 0
 100
-2.0
+24.0
 1
 1
 %
@@ -543,7 +543,7 @@ fertility-loss
 fertility-loss
 0
 100
-20.0
+70.0
 1
 1
 %
@@ -558,7 +558,7 @@ fertility-restore
 fertility-restore
 0
 100
-2.0
+1.0
 1
 1
 %
@@ -593,7 +593,7 @@ INPUTBOX
 314
 70
 max_cycles
-500.0
+100000.0
 1
 0
 Number
@@ -650,7 +650,7 @@ SWITCH
 498
 transfer-ownership
 transfer-ownership
-1
+0
 1
 -1000
 
@@ -1138,7 +1138,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.3.0
+NetLogo 6.4.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
