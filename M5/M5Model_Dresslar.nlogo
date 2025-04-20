@@ -226,20 +226,74 @@ to reproduce
   ; give each of the 2 households half the energy of the original,
   ; and move the new household to a new location
 
+  ;; DRESSLAR COMMENTS double semis are my comments
+  ;; Step 2.2
+
   if energy > (init-energy * fission-rate) and (energy / 2) > move-threshold [
     let parent-energy energy
     let parent-color color
-    hatch 1 [
+
+    ;; get parent variables for reproduction
+    let parent-fission-rate fission-rate
+    let parent-farm-dist farm-dist
+    let parent-min-fertility min-fertility
+    let parent-move-threshold move-threshold
+
+    ;; roll with disadvantage
+    let weirdness-check-1 random(100) + 1
+    let weirdness-check-2 random(100) + 1
+    let weirdness-check max list weirdness-check-1 weirdness-check-2 ;; so weird how that works
+    ifelse Randos? and weirdness-check < weirdness [   ;; step 2.1!
       set size 2
-      set color parent-color
+      set color random 140 ;; random color this is step 2.4 i think
       set energy (parent-energy / 2)
-      if energy <= move-threshold [ ;; reset move threshold to be a little below current energy
-        set move-threshold energy - (0.1 * energy)
+
+      ;; start with parent vals
+      set fission-rate parent-fission-rate
+      set farm-dist parent-farm-dist
+      set min-fertility parent-min-fertility
+      set move-threshold parent-move-threshold
+
+      let mutations n-of 2 ["fission-rate" "farm-dist" "min-fertility" "move-threshold"]  ;; n-of list  Step 2.3
+       foreach mutations [ trait ->
+          if trait = "fission-rate" [  ;; i wanted to use d6 rolls, but these variables are too sensitive!
+            let new-rate (fission-rate * (1 + (random-float 0.5) - 0.25))   ;; fission rate is a percentage
+            set fission-rate max list 0.75 (min list 2.5 new-rate) ;; donʻt go too far
+            output-print (word "mutated fission-rate" fission-rate)
+          ]
+          if trait = "farm-dist" [
+            let new-dist (farm-dist + random 7 - 3) ;; integer hanging around 2-3-ish
+            set farm-dist max list 1 (min list 25 new-dist)
+            output-print (word "mutated farm-dist" farm-dist)
+          ]
+          if trait = "min-fertility" [
+            let new-fert (min-fertility + (random-float 0.3) - 0.15) ;; review this
+            set min-fertility max list 0.1 (min list 0.95 new-fert)
+            output-print (word "mutated min-fertility" min-fertility)
+          ]
+          if trait = "move-threshold" [
+            let new-thresh (move-threshold * (1 + (random-float 0.5) - 0.25))
+            set move-threshold max list 10 (min list init-energy new-thresh)
+            output-print (word "mutated move-threshold" move-threshold)
+          ]
         ]
-      move ;; daughter household moves to new locality if possible
+
+
+    ] [  ;; else, ORIGINAL CODE why am i shoulting though
+      hatch 1 [
+        set size 2
+        set color parent-color
+        set energy (parent-energy / 2)
+        if energy <= move-threshold [
+          set move-threshold energy - (0.1 * energy)
+        ]
+        move
       ]
-    set energy (energy / 2) ;; divide original parent energy between daughter and parent households
-    if energy <= move-threshold [ ;; reset move threshold to be a little below current energy
+    ]
+
+    ;; we still need to handle:
+    set energy (energy / 2)
+    if energy <= move-threshold [
       set move-threshold energy - (0.1 * energy)
     ]
   ]
@@ -401,7 +455,7 @@ harvest
 harvest
 0
 100
-7.0
+12.0
 1
 1
 %
@@ -416,7 +470,7 @@ fission-energy
 fission-energy
 100
 200
-200.0
+150.0
 1
 1
 %
@@ -483,7 +537,7 @@ init-households
 init-households
 1
 50
-3.0
+2.0
 1
 1
 NIL
@@ -528,7 +582,7 @@ move-cost
 move-cost
 0
 100
-24.0
+2.0
 1
 1
 %
@@ -543,7 +597,7 @@ fertility-loss
 fertility-loss
 0
 100
-70.0
+19.0
 1
 1
 %
@@ -558,7 +612,7 @@ fertility-restore
 fertility-restore
 0
 100
-1.0
+2.0
 1
 1
 %
@@ -650,7 +704,7 @@ SWITCH
 498
 transfer-ownership
 transfer-ownership
-0
+1
 1
 -1000
 
@@ -773,6 +827,32 @@ mean [net-return] of households
 0
 1
 11
+
+SWITCH
+10
+565
+117
+598
+Randos?
+Randos?
+1
+1
+-1000
+
+SLIDER
+10
+605
+180
+638
+weirdness
+weirdness
+0
+100
+50.0
+1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 # Farming
