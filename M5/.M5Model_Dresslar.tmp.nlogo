@@ -1470,6 +1470,7 @@ NetLogo 6.4.0
     <metric>mean [min-fertility] of households</metric>
     <metric>mean [move-threshold] of households</metric>
     <metric>mean [vegetation] of patches</metric>
+    <metric>mean [fertility] of patches</metric>
     <runMetricsCondition>ticks mod 1000 = 0</runMetricsCondition>
     <enumeratedValueSet variable="Randos?">
       <value value="true"/>
