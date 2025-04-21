@@ -1470,7 +1470,42 @@ NetLogo 6.4.0
     <metric>mean [min-fertility] of households</metric>
     <metric>mean [move-threshold] of households</metric>
     <metric>mean [vegetation] of patches</metric>
+    <metric>mean [fertility] of patches</metric>
     <runMetricsCondition>ticks mod 1000 = 0</runMetricsCondition>
+    <enumeratedValueSet variable="Randos?">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="weirdness">
+      <value value="80"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="farm-cost">
+      <value value="3"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fission-energy">
+      <value value="150"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="swidden-radius">
+      <value value="12"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="the-min-fertility">
+      <value value="80"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="move-rate">
+      <value value="50"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="randotime_very_long" repetitions="6" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <timeLimit steps="1250000"/>
+    <metric>count households</metric>
+    <metric>mean [fission-rate] of households</metric>
+    <metric>mean [farm-dist] of households</metric>
+    <metric>mean [min-fertility] of households</metric>
+    <metric>mean [move-threshold] of households</metric>
+    <metric>mean [vegetation] of patches</metric>
+    <metric>mean [fertility] of patches</metric>
+    <runMetricsCondition>ticks mod 10000 = 0</runMetricsCondition>
     <enumeratedValueSet variable="Randos?">
       <value value="true"/>
     </enumeratedValueSet>
