@@ -1463,7 +1463,7 @@ NetLogo 6.4.0
   <experiment name="randotime_long" repetitions="6" runMetricsEveryStep="false">
     <setup>setup</setup>
     <go>go</go>
-    <timeLimit steps="250000"/>
+    <timeLimit steps="1250000"/>
     <metric>count households</metric>
     <metric>mean [fission-rate] of households</metric>
     <metric>mean [farm-dist] of households</metric>
@@ -1471,7 +1471,7 @@ NetLogo 6.4.0
     <metric>mean [move-threshold] of households</metric>
     <metric>mean [vegetation] of patches</metric>
     <metric>mean [fertility] of patches</metric>
-    <runMetricsCondition>ticks mod 1000 = 0</runMetricsCondition>
+    <runMetricsCondition>ticks mod 10000 = 0</runMetricsCondition>
     <enumeratedValueSet variable="Randos?">
       <value value="true"/>
     </enumeratedValueSet>
